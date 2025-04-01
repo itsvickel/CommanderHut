@@ -4,7 +4,7 @@ import { fetchCardByQuery } from '../services/cardService';
 import { setCard, setLoading, setError } from '../store/cardSlice';
 import { RootState } from '../store/store';
 
-const CardPage: React.FC = () => {
+const Card: React.FC = () => {
     const dispatch = useDispatch();
     const { card, loading, error } = useSelector((state: RootState) => state.card);
 
@@ -35,4 +35,4 @@ const CardPage: React.FC = () => {
     );
 };
 
-export default CardPage;
+export default Card;

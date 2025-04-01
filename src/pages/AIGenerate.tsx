@@ -17,7 +17,7 @@ const AIGenerate = () => {
         setCards([]);
 
         try {
-            const generatedCards = await fetchCardsFromAI(query);
+            const generatedCards = await fetchCardsFromAI(query).then((res) => { console.log(res) });
             if (generatedCards.length === 0) {
                 setError("No cards were generated. Try a different query.");
             }
@@ -28,7 +28,6 @@ const AIGenerate = () => {
                     setCards(cards => [...cards, res]);
                 });
             });
-
 
         } catch (err) {
             setError("Failed to fetch cards. Please try again.");
@@ -62,7 +61,6 @@ const AIGenerate = () => {
             {cards.length > 0 && (
                 <Column className="mt-4 border-t border-gray-200 pt-4">
                     {cards.map((item, index) => {
-                        console.log(item);
                         return <div key={index}>
                             <img src={item?.image_uris.normal} alt={item?.name} />
                         </div>

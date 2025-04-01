@@ -77,3 +77,35 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
     return [];
   }
 };
+
+export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
+  try {
+    const response = await axios.post(
+      API_AI_URL,
+      {
+        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", // ✅ Make sure this model is available
+        messages: [
+          { role: "system", content: "You are a Magic: The Gathering assistant that generates card lists based on user queries." },
+          { role: "user", content: `Generate a list of Magic: The Gathering cards for a deck: "${query}". Only return the card names, separated by commas.` }
+        ],
+        max_tokens: 100,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data.choices[0].message.content
+      .trim()
+      .split(",")
+      .map((card: string) => card.trim());
+
+  } catch (error) {
+    console.error("Error fetching cards from AI:", error.response?.data || error);
+    return [];
+  }
+};
