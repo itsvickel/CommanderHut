@@ -62,7 +62,7 @@ const AIGenerate = () => {
                 <Column className="mt-4 border-t border-gray-200 pt-4">
                     {cards.map((item, index) => {
                         return <div key={index}>
-                            <img src={item?.image_uris.normal} alt={item?.name} />
+                            <img src={item?.image_uris?.normal} alt={item?.name} />
                         </div>
                     })}
                 </Column>

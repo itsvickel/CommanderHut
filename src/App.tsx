@@ -1,34 +1,67 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+  
+import styled from 'styled-components';
 
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import AIGenerate from "./pages/AIGenerate";
+import Title from './Components/Title';
 
+import colors from './styles/colors';
 
 import Home from './pages/Home';
+import Navbar from './Components/Navbar';
+import CardPage from './pages/CardPage';
 
 function App() {
 
-  return (
-    <>
-      <Router>
-        <nav className="p-4 bg-gray-800 text-white flex justify-between">
-          <h1 className="text-lg font-bold">MTG AI</h1>
-          <ul className="flex space-x-4">
-            <li><Link to="/" className="hover:underline">Home</Link></li>
-            <li><Link to="/ai-generate" className="hover:underline">AI Generate</Link></li>
-          </ul>
-        </nav>
+  const navigationObj = [
+    {
+      name:"home",
+      to:"/Home"
+    },
+    {
+      name:"cards",
+      to:"/cards"
+    },
+    {
+      name:"Deck",
+      to:"/ai-generate"
+    },
+    {
+      name:"/",
+      to:"/text"
+    },
+  ]
 
-        <Routes>
-          <Route path="/ai-generate" element={<AIGenerate />} />
-          <Route path="/" element={<h2 className="text-center mt-10">Welcome to MTG AI</h2>} />
-        </Routes>
+  return (
+    <MainWrapper> 
+
+      <Router>           
+        <Navbar obj={navigationObj}/>
+            <Title>MTG AI</Title>      
+            <Routes>
+              <Route path="/ai-generate" element={<AIGenerate />} />
+              <Route path="/cards" element={<CardPage />} />
+              <Route path="/" element={<h2 className="text-center mt-10">Welcome to MTG AI</h2>} />
+            </Routes>   
       </Router>
-    </>
+    </MainWrapper>
   )
 }
 
 export default App
+
+const MainWrapper = styled.div`
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  margin: 0;
+  
+  background: ${colors.greyE8E8E8};
+
+  color: ${colors.black}
+`;

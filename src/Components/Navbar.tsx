@@ -1,22 +1,36 @@
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+ 
+import colors from '../styles/colors.js';
 
 interface Props {
-    obj: [{
+    obj: {
         name: string;
         to: string;
-    }]
+    }[]
 }
 
 const Navbar = ({ obj }: Props) => {
     return (
-        <nav>
-            <ul style={{ display: 'flex', justifyContent: 'space-around', listStyleType: 'none', padding: '1rem' }}>
-                {obj.map((item) => {
-                    return <li><Link to={item.to}>{item.name}</Link></li>
+        <NavigationContainer>
+                {obj.map((item, index) => {
+                    return  <LinkItem key={index} to={item.to}>{item.name}</LinkItem> 
                 })}
-            </ul>
-        </nav>
+        </NavigationContainer>
     );
 };
 
 export default Navbar;
+
+const NavigationContainer = styled.div`
+    width: 100%;
+    top: 0;
+    position: absolute;
+    margin: 2%;
+`;
+
+const LinkItem = styled(Link)`
+    margin: 3%;
+    padding: 2%;
+    color: ${colors.black};
+`;

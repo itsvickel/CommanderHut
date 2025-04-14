@@ -1,10 +1,8 @@
 import { Card } from '../types/cardTypes';
 import axios from 'axios';
+import API_ENDPOINT from "../Constants/api";
 
-
-// Base API URL (you can change this later based on your backend)
-const API_URL = 'https://api.scryfall.com/cards';
-
+ 
 /**
  * Fetches a card by its name or ID.
  * @param {string} query - The name or ID of the card.
@@ -12,7 +10,7 @@ const API_URL = 'https://api.scryfall.com/cards';
  */
 export const fetchCardByQuery = async (query: string): Promise<Card> => {
   try {
-    const response = await fetch(`${API_URL}/search?q=${query}`);
+    const response = await fetch(`${API_ENDPOINT.SCRYFALL}/search?q=${query}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch card with query: ${query}`);
     }
@@ -31,7 +29,7 @@ export const fetchCardByQuery = async (query: string): Promise<Card> => {
  */
 export const fetchCardById = async (cardId: string): Promise<Card> => {
   try {
-    const response = await fetch(`${API_URL}/${cardId}`);
+    const response = await fetch(`${API_ENDPOINT.SCRYFALL}/${cardId}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch card with ID: ${cardId}`);
     }
@@ -43,13 +41,33 @@ export const fetchCardById = async (cardId: string): Promise<Card> => {
   }
 };
 
-const API_AI_URL = "https://api.together.xyz/v1/chat/completions"; // ✅ Corrected URL
+/**
+ * Fetches a card by its name 
+ * @param {string} query - The name the card.
+ * @returns {Promise<Card>} - Returns the card data.
+ */
+export const fetchCardByName = async (query: string): Promise<Card> => {
+  try {
+    const response = await fetch(`${API_ENDPOINT.CARD_QUERY}${query}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch card with query: ${query}`);
+    }
+    const data = await response.json();
+    console.log(data);
+    return data; // Assuming we're returning the first card from the search
+  } catch (error) {
+    console.error('Error fetching card:', error);
+    throw error;
+  }
+};
+
+
 const API_KEY = import.meta.env.VITE_TOGETHER_API_KEY; // Ensure this is set in your .env file
 
 export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
   try {
     const response = await axios.post(
-      API_AI_URL,
+      API_ENDPOINT.AI_TOGETHER_BASE,
       {
         model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", // ✅ Make sure this model is available
         messages: [
@@ -78,6 +96,7 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
   }
 };
 
+<<<<<<< Updated upstream
 export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
   try {
     const response = await axios.post(
@@ -109,3 +128,24 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
     return [];
   }
 };
+=======
+/**
+ * Fetches a random list of card details.
+ * @param {number} limit - The number of random cards to fetch.
+ * @returns {Promise<Card[]>} - Returns an array of card data.
+ */
+export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => {
+  try {
+    const response = await fetch(`${API_ENDPOINT.RANDOM_CARD_LIST}?limit=${limit}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch random list of cards");
+    }
+
+    const cards = await response.json();
+    return cards;
+  } catch (error) {
+    console.error("Error fetching random list of cards:", error);
+    throw error;
+  }
+};
+>>>>>>> Stashed changes
