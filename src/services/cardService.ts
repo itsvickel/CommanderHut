@@ -96,11 +96,10 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
   }
 };
 
-<<<<<<< Updated upstream
 export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
   try {
     const response = await axios.post(
-      API_AI_URL,
+      API_ENDPOINT.AI_TOGETHER_BASE,
       {
         model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", // ✅ Make sure this model is available
         messages: [
@@ -128,7 +127,6 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
     return [];
   }
 };
-=======
 /**
  * Fetches a random list of card details.
  * @param {number} limit - The number of random cards to fetch.
@@ -148,4 +146,3 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
     throw error;
   }
 };
->>>>>>> Stashed changes
