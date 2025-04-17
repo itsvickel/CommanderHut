@@ -4,8 +4,8 @@ import { fetchCardByName, fetchCardByQuery, fetchListOfRandomCards } from '../se
 import { setCard, setLoading, setError } from '../store/cardSlice';
 
 import styled from 'styled-components';
-import Button from '../Components/Button';
-import Input from '../Components/Input';
+import Button from '../Components/UI_Components/Button';
+import Input from '../Components/UI_Components/Input';
 import CardItem from '../Components/CardItem';
 
 // Define the type of the card if not already defined

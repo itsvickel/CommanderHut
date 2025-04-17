@@ -15,7 +15,7 @@ interface CardProps {
 }
 
 // Update the component to accept props of type CardProps
-const CardItem: React.FC<CardProps> = ({ obj, key }) => {
+const CardModal: React.FC<CardProps> = ({ obj, key }) => {
   return (
     <div key={key}>
       {/* Render the card data */}
@@ -30,7 +30,7 @@ const CardItem: React.FC<CardProps> = ({ obj, key }) => {
   );
 };
 
-export default CardItem;
+export default CardModal;
 
 const Image = styled.img`
     width: 223px; /* MTG card size approximation */

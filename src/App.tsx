@@ -11,6 +11,10 @@ import colors from './styles/colors';
 import Home from './pages/Home';
 import Navbar from './Components/Navbar';
 import CardPage from './pages/CardPage';
+import DeckPage from './pages/DeckPage';
+import Sandbox from './pages/Sandbox';
+import Authentication from './pages/Authentication';
+import RegisterUser from './pages/RegisterUser';
 
 function App() {
 
@@ -25,11 +29,22 @@ function App() {
     },
     {
       name:"Deck",
-      to:"/ai-generate"
+      to:"/deck"
     },
     {
-      name:"/",
-      to:"/text"
+      name:"Sandbox",
+      to:"/sandbox"
+    },
+    {
+      name:"AI Decksmith",
+      to:"/decksmith"
+    },    {
+      name:"Register",
+      to:"/register"
+    },
+    {
+      name:"Login",
+      to:"/login"
     },
   ]
 
@@ -40,8 +55,12 @@ function App() {
         <Navbar obj={navigationObj}/>
             <Title>MTG AI</Title>      
             <Routes>
-              <Route path="/ai-generate" element={<AIGenerate />} />
+              <Route path="/decksmith" element={<AIGenerate />} />
+              <Route path="/deck" element={<DeckPage />} />
               <Route path="/cards" element={<CardPage />} />
+              <Route path="/sandbox" element={<Sandbox />} />
+              <Route path="/register" element={<RegisterUser />} />
+              <Route path="/login" element={<Authentication />} />
               <Route path="/" element={<h2 className="text-center mt-10">Welcome to MTG AI</h2>} />
             </Routes>   
       </Router>
