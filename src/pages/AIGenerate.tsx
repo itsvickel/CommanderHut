@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchCardByQuery, fetchCardsFromAI } from "../services/cardService";
+import { fetchCardByName, fetchCardsFromAI } from "../services/cardService";
 
 import styled from 'styled-components';
 
@@ -23,7 +23,7 @@ const AIGenerate = () => {
             }
 
             generatedCards.map((item) => {
-                fetchCardByQuery(item).then((res) => {
+                fetchCardByName(item).then((res) => {
                     // return res;
                     setCards(cards => [...cards, res]);
                 });

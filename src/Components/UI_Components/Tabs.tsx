@@ -18,8 +18,7 @@ const Tabs = ({ obj }: TabProps) => {
   return (
     <Container>
         <TabContainer>
-          {obj.map((item)=>{
-            console.log(item);
+          {obj.map((item)=>{ 
             return <TabName onClick={()=>setCurrentTab(item.key)}>{item.title}</TabName>
           })}
         </TabContainer>

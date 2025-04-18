@@ -6,9 +6,9 @@ import { setCard, setLoading, setError } from '../store/cardSlice';
 import styled from 'styled-components';
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
-import CardItem from '../Components/CardItem';
-import DeckImport from '../Components/DeckImport';
-import Tabs from '../Components/Tabs';
+import CardItem from '../Components/Card/CardItem';
+import DeckImport from '../Components/Deck/DeckImport';
+import Tabs from '../Components/UI_Components/Tabs';
 
  
   const DeckPage = () => {

@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import AIGenerate from "./pages/AIGenerate";
-import Title from './Components/Title';
+import Title from './Components/UI_Components/Title';
 
 import colors from './styles/colors';
 

@@ -6,7 +6,7 @@ import { setCard, setLoading, setError } from '../store/cardSlice';
 import styled from 'styled-components';
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
-import CardItem from '../Components/CardItem';
+import CardItem from '../Components/Card/CardItem';
 
 // Define the type of the card if not already defined
 interface Card {
