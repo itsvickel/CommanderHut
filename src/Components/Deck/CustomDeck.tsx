@@ -3,20 +3,21 @@ import styled from 'styled-components';
 import API_ENDPOINT from '../../Constants/api';
 import SearchBar from '../UI_Components/Searchbar';
 import { fetchCardByName } from '../../services/cardService';
-import { Card } from '../../Interface';
+import { Card } from '../../Interface/index';
 
 import CardItem from '../Card/CardItem';
+import {Button, Input} from '../UI_Components/index';
+
+import DeckFormat from '../../Constants/constant';
+
+import { postDeckList } from '../../services/deckService';
+
+import { useSelector } from 'react-redux';
 
 // Define the Props interface outside the component for better readability
 interface DeckProps {
   key?: number;
-  obj?: {
-    name?: string;
-    image_uris?: {
-      normal: string;
-    };
-    oracle_text?: string;
-  };
+  card?: Card[];
 }
 
 // Function to group cards by their type
@@ -29,8 +30,12 @@ const groupCardsByType = (cards: Card[]) => {
   }, {});
 };
 
-const CustomDeck = ({ obj, key }: DeckProps) => {
-  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+const CustomDeck = ({ card, key }: DeckProps) => {
+  const [selectedCards, setSelectedCards] = useState<Card[]>(card || []);
+  const [deckName, setDeckName] = useState<string>("");
+  
+  const user = useSelector((state: RootState) => state.auth.user);
+
 
   const fetchOptions = async (query: string) => {
     return await fetchCardByName(query);
@@ -42,6 +47,20 @@ const CustomDeck = ({ obj, key }: DeckProps) => {
     }
   };
 
+  const SubmitDeck = () =>{
+
+    // email_address,
+    // deck_name,
+    // format,
+    // commander,
+    // tags,
+    // is_public,
+    // cards: selectedCards,
+    console.log("submit");
+    postDeckList(user.email_address, deckName, DeckFormat.Commander , selectedCards );
+
+  }
+
   // Group the selected cards by their type
   const groupedCards = groupCardsByType(selectedCards);
 
@@ -49,20 +68,26 @@ const CustomDeck = ({ obj, key }: DeckProps) => {
     <Wrapper key={key}>
       <SearchBar fetchOptions={fetchOptions} onSelect={handleSelect} />
 
+      <Input placeholder='deck name' onChange={(e)=>setDeckName(e.target.value)}/>
       <StackContainer>
+        {groupedCards ?
+        <>
         {Object.entries(groupedCards).map(([type, cards]) => (
           <CardGroup key={type}>
             <GroupTitle>{type}</GroupTitle>
             <CardList>
               {cards.map((card, i) => (
                 <CardItem
-                key={i}
-                obj={card}
+                  key={i}
+                  obj={card}
                 />
               ))}
             </CardList>
           </CardGroup>
         ))}
+        <Button onClick={SubmitDeck} name={'Submit'}/>         
+        </> 
+        : null}
       </StackContainer>
     </Wrapper>
   );

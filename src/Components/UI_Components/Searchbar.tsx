@@ -37,7 +37,7 @@ const SearchBar = ({ fetchOptions, onSelect }: SearchBarProps) => {
     debounceRef.current = setTimeout(async () => {
       const results = await fetchOptions(query);
       setOptions(results);
-      setShowDropdown(true);
+      setShowDropdown(true); 
     }, 300);
   }, [query, fetchOptions]);
 
@@ -51,7 +51,7 @@ const SearchBar = ({ fetchOptions, onSelect }: SearchBarProps) => {
         onFocus={() => {
           if (options?.length > 0) setShowDropdown(true);
         }}
-      />
+      />                   
       {showDropdown && options?.length > 0 && (
         <Dropdown>
           {options.map((item, index) => (
@@ -64,7 +64,13 @@ const SearchBar = ({ fetchOptions, onSelect }: SearchBarProps) => {
                 setShowDropdown(false);
               }}
             >
-              {item.name ?? JSON.stringify(item)}
+              <RowItem>
+              {item.image_uris?.normal && (
+                <CardImage src={item.image_uris.normal} alt={item.name} />
+              )} 
+               <CardName>{item.name ?? JSON.stringify(item)}</CardName>
+              </RowItem>
+             
             </Option>
           ))}
         </Dropdown>
@@ -113,4 +119,23 @@ const Option = styled.li`
   &:hover {
     background-color: #f2f2f2;
   }
+`;
+
+const CardImage = styled.img`
+  width: 40px;
+  height: auto;
+  border-radius: 4px;
+  margin-right: 10px;
+`;
+
+const CardName = styled.span`
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+ 
+const RowItem = styled.div`
+  display: flex;
+  flex-direction: row;
 `;

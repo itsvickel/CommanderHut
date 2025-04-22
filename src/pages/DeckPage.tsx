@@ -9,12 +9,22 @@ import Input from '../Components/UI_Components/Input';
 import CardItem from '../Components/Card/CardItem';
 import DeckImport from '../Components/Deck/DeckImport';
 import Tabs from '../Components/UI_Components/Tabs';
+import { fetchAllDecks } from '../services/deckService';
 
- 
+// import Decks from '../Interface/deck';
+import cards from '../Interface/cards'; 
+
   const DeckPage = () => {
 
-    useEffect(() => {
+    const [decks, setDecks] = useState<Decks[]>([]);
 
+    useEffect(() => {
+        fetchAllDecks().then((res)=>{
+            console.log(res);
+        })
+        .catch((err)=>{
+            console.log(err);
+        })
        
 
     }, [ ]);

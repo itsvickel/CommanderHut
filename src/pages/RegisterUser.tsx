@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { fetchCardByQuery, fetchCardsFromAI } from "../services/cardService";
 
-import {Button, Input, Label} from '../Components/UI_Components/UI_Components';
+import {Button, Input, Label} from '../Components/UI_Components';
 
 import styled from 'styled-components';
 import { postRegisterUser } from "../services/userService"; 
