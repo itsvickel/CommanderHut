@@ -1,11 +1,10 @@
-// interfaces/deck.ts
-import { Card } from './cards';  
+// interfaces/deck.ts 
 
   export interface Deck {
     deck_name: string;
-    format: 'Commander' | 'Standard' | 'Modern'; // Or any other valid formats
-    deck_list: Card[]; // Array of card objects with details
-    commander?: string; // Optional: For Commander decks, the commander card name
+    format:  'Commander' | 'Standard' | 'Modern' | 'Pioneer' | 'Legacy' | 'Vintage' | string; // Or any other valid formats
+    deck_list: {id: number,quantity: number}[]; // Array of card objects with details
+    commander?: string; // Opt  ional: For Commander decks, the commander card name
     created_at: string; // Timestamp of when the deck was created
     updated_at: string; // Timestamp of when the deck was last modified
     owner_id: string; // User ID who owns this deck

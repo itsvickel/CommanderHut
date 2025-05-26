@@ -18,6 +18,7 @@ import { login, logout } from './store/authSlice';
 import { RootState } from '../src/store';
 import Home from './pages/home';
 import useAuth from './hooks/useAuth';
+import DeckList from './Components/Deck/DeckList';
 
 const AppComponent = () => { 
   useAuth();
@@ -27,7 +28,7 @@ const AppComponent = () => {
 
   const navigationObj = [ 
     { name: 'Cards', to: '/cards' },
-    { name: 'Deck', to: '/deck' },
+    { name: 'Decks', to: '/decks' },
     { name: 'Sandbox', to: '/sandbox' },
     { name: 'AI Decksmith', to: '/decksmith' },
     { name: isLogged ? "" : 'Register', to: '/register' },
@@ -40,7 +41,8 @@ const AppComponent = () => {
 
       <Routes>
         <Route path="/decksmith" element={<AIGenerate />} />
-        <Route path="/deck" element={<DeckPage />} />
+        <Route path="/decks" element={<DeckPage />} />
+        <Route path="/decks/:id" element={<DeckList />} />
         <Route path="/cards" element={<CardPage />} />
         <Route path="/sandbox" element={<Sandbox />} />
         <Route path="/register" element={<RegisterUser />} />

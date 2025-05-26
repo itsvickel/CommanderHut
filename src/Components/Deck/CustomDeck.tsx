@@ -55,9 +55,13 @@ const CustomDeck = ({ card, key }: DeckProps) => {
     // commander,
     // tags,
     // is_public,
-    // cards: selectedCards,
-    console.log("submit");
-    postDeckList(user.email_address, deckName, DeckFormat.Commander , selectedCards );
+    // cards: selectedCards, 
+    postDeckList(user.email_address,deckName,DeckFormat.Commander, selectedCards).then((res)=>{
+      if(res){
+        setSelectedCards([]);
+        setDeckName('');
+      }
+    });
 
   }
 

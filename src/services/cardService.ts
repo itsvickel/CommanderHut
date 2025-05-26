@@ -146,6 +146,7 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
     throw error;
   }
 };
+
 /**
  * Fetches a list of cards matching the fuzzy name.
  * @param {string} name - The search query.
@@ -153,7 +154,7 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
  */
 export const fetchCardByName = async (name: string): Promise<Card[]> => {
   try {
-    const response = await fetch(API_ENDPOINT.CARD_QUERY+`${name}`);
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_NAME+`${name}`);
     if (!response.ok) {
       throw new Error("Failed to fetch the cards");
     }
@@ -163,5 +164,45 @@ export const fetchCardByName = async (name: string): Promise<Card[]> => {
   } catch (error) {
     console.error("Error fetching cards:", error);
     throw error;
+  }
+};
+
+/**
+ * Fetch the specific card by ID.
+ * @param {number} ID - The search query.
+ * @returns {Promise<Card>} - Return a single card.
+ */
+export const fetchCardByID = async (ID: number): Promise<Card> => {
+  try {
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_ID+`${ID}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch the cards");
+    }
+
+    const cards = await response.json();
+    return cards;
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch the specific cards in bulk by names or IDs.
+ * @param {array} cards - The array of card names or IDs to search for.
+ * @returns {Promise<Card[]>} - Returns an array of cards.
+ */
+export const fetchCardBulk = async (cards: string[]): Promise<Card[]> => {
+  try {
+    // Sending the array of cards in the POST request body
+    const response = await axios.post(API_ENDPOINT.CARD_BULK, {
+      cards, // Send the array of card names in the request body
+    });
+
+    // Axios automatically parses the response, so we can directly access response.data
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    throw error; // Re-throwing the error for further handling
   }
 };

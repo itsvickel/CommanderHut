@@ -9,12 +9,15 @@ const API_ENDPOINT = {
 
   // ========== 👤 Users ==========
   USER_BASE_URL: import.meta.env.VITE_API_USER_BASE_URL,
-
+ 
   // ========== 🃏 Cards ==========
   CARDS_BASE_URL: import.meta.env.VITE_API_CARDS_BASE_URL,
   SCRYFALL: import.meta.env.VITE_API_SCRYFALL,
-  CARD_QUERY: import.meta.env.VITE_API_CARD_QUERY,
+  CARD_QUERY_BY_NAME: import.meta.env.VITE_API_CARD_QUERY_BY_NAME,
+  CARD_QUERY_BY_SET: import.meta.env.VITE_API_CARD_QUERY_BY_SET,
+  CARD_QUERY_BY_ID: import.meta.env.VITE_API_CARD_QUERY_BY_ID,
   RANDOM_CARD_LIST: import.meta.env.VITE_API_RANDOM_CARD_LIST,
+  CARD_BULK: import.meta.env.VITE_API_CARD_BULK,
 
   // ========== 🧠 AI ==========
   AI_GENERATE: import.meta.env.VITE_API_AI_GENERATE,
@@ -22,7 +25,8 @@ const API_ENDPOINT = {
 
   // ========== 🃏 Decks ==========
   DECK_BASE_URL: import.meta.env.VITE_API_DECKS_BASE_URL,
-  DECK_BY_USER: import.meta.env.VITE_API_DECKS_USER_URL,
+  DECK_BY_USER: import.meta.env.VITE_API_DECKS_USER,
+  DECK_BY_ID: import.meta.env.VITE_API_DECKS_ID,
 };
 
 export default API_ENDPOINT;
