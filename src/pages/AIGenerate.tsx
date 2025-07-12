@@ -2,6 +2,7 @@ import { useState } from "react";
 import { fetchCardByQuery, fetchCardsFromAI } from "../services/cardService";
 
 import styled from 'styled-components';
+import { Button, Input } from "../components/UI_Components/index";
 
 const AIGenerate = () => {
     const [query, setQuery] = useState("");
@@ -40,21 +41,16 @@ const AIGenerate = () => {
         <div className="p-6 max-w-2xl mx-auto bg-white shadow-md rounded-xl">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">AI-Generated MTG Cards</h2>
 
-            <input
-                type="text"
-                value={query}
+            <Input 
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Enter your card query..."
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                value={query}
             />
 
-            <button
+            <Button 
+                name= {loading ? "Generating..." : "Generate Cards"} 
                 onClick={handleGenerateCards}
-                disabled={loading}
-                className={`w-full px-4 py-2 text-white bg-blue-600 rounded-md ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"}`}
-            >
-                {loading ? "Generating..." : "Generate Cards"}
-            </button>
+            />
 
             {error && <p className="text-red-500 mt-2">{error}</p>}
 

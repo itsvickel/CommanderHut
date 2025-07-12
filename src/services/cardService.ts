@@ -96,7 +96,6 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
   }
 };
 
-<<<<<<< Updated upstream
 export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
   try {
     const response = await axios.post(
@@ -128,7 +127,6 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
     return [];
   }
 };
-=======
 /**
  * Fetches a random list of card details.
  * @param {number} limit - The number of random cards to fetch.
@@ -148,4 +146,3 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
     throw error;
   }
 };
->>>>>>> Stashed changes

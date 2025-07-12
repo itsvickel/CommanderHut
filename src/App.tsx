@@ -14,37 +14,28 @@ import CardPage from './pages/CardPage';
 
 function App() {
 
-  const navigationObj = [
-    {
-      name:"home",
-      to:"/Home"
-    },
-    {
-      name:"cards",
-      to:"/cards"
-    },
-    {
-      name:"Deck",
-      to:"/ai-generate"
-    },
-    {
-      name:"/",
-      to:"/text"
-    },
-  ]
+  const navigationObj = [ 
+    { name: 'Cards', to: '/cards' },
+    { name: 'Decks', to: '/decks' },
+    { name: 'Sandbox', to: '/sandbox' },
+    { name: 'AI Decksmith', to: '/decksmith' },
+    { name: isLogged ? "" : 'Register', to: '/register' },
+    { name: isLogged ? "" : 'Login', to: '/Authentication' },
+  ];
 
   return (
     <MainWrapper> 
 
-      <Router>           
-        <Navbar obj={navigationObj}/>
-            <Title>MTG AI</Title>      
-            <Routes>
-              <Route path="/ai-generate" element={<AIGenerate />} />
-              <Route path="/cards" element={<CardPage />} />
-              <Route path="/" element={<h2 className="text-center mt-10">Welcome to MTG AI</h2>} />
-            </Routes>   
-      </Router>
+      <Routes>
+        <Route path="/decksmith" element={<AIGenerate />} />
+        <Route path="/decks" element={<DeckPage />} />
+        <Route path="/decks/:id" element={<DeckList />} />
+        <Route path="/cards" element={<CardPage />} />
+        <Route path="/sandbox" element={<Sandbox />} />
+        <Route path="/register" element={<RegisterUser />} />
+        <Route path="/Authentication" element={<Authentication />} /> 
+        <Route path="/" element={<Home />} />
+      </Routes>
     </MainWrapper>
   )
 }
