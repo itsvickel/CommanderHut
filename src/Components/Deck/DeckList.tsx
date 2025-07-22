@@ -10,6 +10,7 @@ interface Card {
   type_line: string;
   image_url: string;
   oracle_text: string;
+  image_uris?: { normal: string }; // fallback if using image_uris
 }
 
 interface CardWithCount extends Card {
@@ -23,7 +24,6 @@ const DeckList = () => {
   const [filter, setFilter] = useState({ name: '', mana: '' });
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-  // Move groupByType function outside of useEffect
   const groupByType = (cards: Card[]) => {
     const groups: Record<string, CardWithCount[]> = {};
     const cardMap = new Map<string, CardWithCount>();
@@ -51,7 +51,7 @@ const DeckList = () => {
       fetchDeckListByID(id)
         .then((deckData) => {
           setDeck(deckData.deck);
-          groupByType(deckData.deck.card_list);  // Call groupByType after setting the deck data
+          groupByType(deckData.deck.card_list);
         })
         .catch((err) => {
           console.error('Error fetching deck by ID:', err);
@@ -89,24 +89,37 @@ const DeckList = () => {
         />
       </FilterBar>
 
-      {Object.entries(groupedCards).map(([type, cards]) => (
-        <TypeSection key={type}>
-          <h3>{type}</h3>
-          <TextList>
-            {filterCards(cards).map((card) => (
-              <CardRow key={card.id} onClick={() => setSelectedCard(card)}>
-                <span>{card.count}x</span> {card.name}
-                <HoverImage src={card.image_url} alt={card.name} />
-              </CardRow>
-            ))}
-          </TextList>
-        </TypeSection>
-      ))}
+      <Filters>
+        {/* buttons -> mana value, name,  */}
+      </Filters>
+
+
+      <Download>
+        {/* buttons -> mana value, name,  */}
+      </Download>
+
+
+      <CardContainer>
+        {Object.entries(groupedCards).map(([type, cards]) => (
+          <TypeSection key={type}>
+            <h3>{type}</h3>
+            <TextList>
+              {filterCards(cards).map((card) => (
+                <CardRow key={card.id} onClick={() => setSelectedCard(card)}>
+                  <span>{card.count}x</span> {card.name}
+                  <HoverImage src={card?.image_uris?.normal} alt={card.name} />
+                </CardRow>
+              ))}
+            </TextList>
+          </TypeSection>
+        ))}
+      </CardContainer>
 
       {selectedCard && (
         <CardModal onClick={() => setSelectedCard(null)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <img src={selectedCard.image_url} alt={selectedCard.name} />
+            <CloseButton onClick={() => setSelectedCard(null)}>&times;</CloseButton>
+            <img src={selectedCard?.image_uris?.normal} alt={selectedCard.name} />
             <CardInfo>
               <h2>{selectedCard.name}</h2>
               <p><strong>Mana Cost:</strong> {selectedCard.mana_cost}</p>
@@ -122,6 +135,8 @@ const DeckList = () => {
 
 export default DeckList;
 
+// ---------- STYLED COMPONENTS ----------
+
 const Wrapper = styled.div`
   padding: 2rem;
   width: 90vw;
@@ -129,54 +144,6 @@ const Wrapper = styled.div`
   margin: 0 auto;
   background: #f9f9f9;
   border-radius: 10px;
-`;
-
-const CardHover = styled.li`
-  padding: 0.5rem;
-  cursor: pointer;
-  font-family: monospace;
-  color: #0077cc;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const CardModal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  display: flex;
-  gap: 1.5rem;
-  max-width: 800px;
-
-  img {
-    height: 400px;
-    border-radius: 8px;
-  }
-`;
-
-const CardInfo = styled.div`
-  max-width: 350px;
-  h2 {
-    margin: 0 0 0.5rem;
-  }
-  p {
-    margin: 0.5rem 0;
-  }
 `;
 
 const FilterBar = styled.div`
@@ -194,9 +161,18 @@ const FilterBar = styled.div`
   }
 `;
 
-const TypeSection = styled.div`
-  margin-bottom: 2rem;
+const CardContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  height: 80%;
+  margin: 2% 5%;
+`;
 
+const TypeSection = styled.div`
+
+  margin-bottom: 2rem;
+  flex: 25%;
   h3 {
     border-bottom: 2px solid #ddd;
     padding-bottom: 0.25rem;
@@ -247,4 +223,114 @@ const HoverImage = styled.img`
   border-radius: 8px;
   background: white;
   z-index: 10;
+`;
+
+const CardModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  max-height: 80vh;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: fadeInScale 0.3s ease;
+
+  img {
+    height: auto;
+    max-height: 60vh;
+    width: auto;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
+const CardInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  h2 {
+    font-size: 1.75rem;
+    margin: 0 0 1rem;
+    color: #222;
+  }
+
+  p {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  strong {
+    color: #000;
+    font-weight: 600;
+  }
+
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.75rem;
+  color: #888;
+  cursor: pointer;
+
+  &:hover {
+    color: #222;
+  }
+`;
+
+const Filters = styled.div`
+
+`;
+
+const Download = styled.div`
+  
 `;

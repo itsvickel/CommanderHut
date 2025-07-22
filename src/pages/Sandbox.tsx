@@ -9,6 +9,7 @@ import { fetchCardBulk } from '../services/cardService';
 import { postDeckList } from '../services/deckService';
 
 import { Deck } from '../Interface/deck';
+import { Debounce } from '../utils/helpers';
 
 interface SelectedCard {
   cardId: string;
@@ -32,6 +33,8 @@ const Sandbox: React.FC = () => {
   const [deckCards, setDeckCards] = useState<string>(''); // Store as a string for editable text
   const [format, setFormat] = useState<string>('commander');
   const [commander, setCommander] = useState<string>('');
+  const [commanderSuggestions, setCommanderSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
   const handleCreateDeck = async () => {
     const cardsArray = deckCards
@@ -43,8 +46,7 @@ const Sandbox: React.FC = () => {
       })
       .filter(card => card.name && !isNaN(card.count));
 
-    const cardNames = cardsArray.map(card => card.name);
-    console.log(cardNames);
+    const cardNames = cardsArray.map(card => card.name); 
 
     try {
       const { cards: fetchedCards, notFound } = await fetchCardBulk(cardNames);
@@ -74,7 +76,6 @@ const Sandbox: React.FC = () => {
         alert(`These cards could not be found: ${unresolved.join(', ')}`);
         return;
       }
-      console.log(finalCards);
 
       const ownerId = user?.id || 'anonymous';
       const deckPayload: Deck = {
@@ -112,6 +113,26 @@ const Sandbox: React.FC = () => {
     setDeckName(e.target.value);
   };
 
+  const handleCommanderChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCommander(value);
+    fetchCommanderSuggestions(value);
+  };
+
+  const fetchCommanderSuggestions = Debounce(async (query: string) => {
+    if (!query.trim()) return;
+  
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      setCommanderSuggestions(data.data);
+      setShowSuggestions(true);
+    } catch (err) {
+      console.error("Autocomplete error:", err);
+      setCommanderSuggestions([]);
+    }
+  }, 300);
+
   return (
     <Wrapper>
       <Title>Deck Builder</Title>
@@ -132,14 +153,42 @@ const Sandbox: React.FC = () => {
           <option value="pauper">Pauper</option>
           {/* Add more formats as needed */}
         </Select>
-        {format.toLowerCase() === 'commander' && (
+        {/* {format.toLowerCase() === 'commander' && (
           <Input
             placeholder="Add your Commander"
             value={commander}
             onChange={handleChange(setCommander)}
           />
-        )}
+        )} */}
+
+        
       </Section>
+      {format.toLowerCase() === 'commander' && (
+        <>
+          <Input
+            placeholder="Add your Commander"
+            value={commander}
+            onChange={handleCommanderChange}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // close after click
+            onFocus={() => commander && setShowSuggestions(true)}
+          />
+          {showSuggestions && commanderSuggestions.length > 0 && (
+            <SuggestionBox>
+              {commanderSuggestions.map((suggestion) => (
+                <SuggestionItem
+                  key={suggestion}
+                  onClick={() => {
+                    setCommander(suggestion);
+                    setShowSuggestions(false);
+                  }}
+                >
+                  {suggestion}
+                </SuggestionItem>
+              ))}
+            </SuggestionBox>
+          )}
+        </>
+      )}
 
       <Section>
         <Label>Advanced Options</Label>
@@ -225,4 +274,26 @@ const TextArea = styled.textarea`
   resize: vertical;
   margin-top: 1rem;
   min-height: 150px;
+`;
+
+const SuggestionBox = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  position: absolute;
+  width: calc(100% - 2rem);
+  z-index: 100;
+`;
+
+const SuggestionItem = styled.li`
+  padding: 0.5rem;
+  cursor: pointer;
+  &:hover {
+    background-color: #eee;
+  }
 `;
