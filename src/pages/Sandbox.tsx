@@ -12,7 +12,7 @@ import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
 
 interface SelectedCard {
-  cardId: string;
+  card: string;
   quantity: number;
 }
 
@@ -27,90 +27,105 @@ interface RootState {
 
 const Sandbox: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const isLoggedIn = !!user;
-
-  const [deckName, setDeckName] = useState<string>('');
-  const [deckCards, setDeckCards] = useState<string>(''); // Store as a string for editable text
-  const [format, setFormat] = useState<string>('commander');
-  const [commander, setCommander] = useState<string>('');
+  const [deckName, setDeckName] = useState('');
+  const [deckCards, setDeckCards] = useState('');
+  const [format, setFormat] = useState('commander');
+  const [commander, setCommander] = useState('');
   const [commanderSuggestions, setCommanderSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [errorCards, setErrorCards] = useState<string[]>([]);
 
   const handleCreateDeck = async () => {
+    console.log('=== Submitting Deck ===');
+    console.log('Deck name:', deckName);
+    console.log('Commander:', commander);
+    console.log('Deck cards raw input:', deckCards);
+
+    // Parse deckCards text into structured array [{name, count}]
     const cardsArray = deckCards
       .split('\n')
-      .map((line) => {
-        const [count, ...cardNameParts] = line.trim().split(' ');
-        const cardName = cardNameParts.join(' ').toLowerCase();
-        return { name: cardName, count: parseInt(count) };
+      .map(line => {
+        const match = line.trim().match(/^(\d+)\s+(.+)$/);
+        if (!match) return null;
+        const [, count, name] = match;
+        return { name: name.trim(), count: parseInt(count, 10) };
       })
-      .filter(card => card.name && !isNaN(card.count));
+      .filter(Boolean) as { name: string; count: number }[];
 
-    const cardNames = cardsArray.map(card => card.name); 
+    console.log('Parsed cardsArray:', cardsArray);
+
+    if (cardsArray.length === 0) {
+      alert('Your deck list is empty or incorrectly formatted. Use lines like "4 Lightning Bolt".');
+      return;
+    }
+
+    const cardNames = cardsArray.map(c => c.name);
+    console.log('Card names for fetch:', cardNames);
 
     try {
       const { cards: fetchedCards, notFound } = await fetchCardBulk(cardNames);
 
-      if (!fetchedCards || fetchedCards.length === 0) {
-        throw new Error('No cards were found or the API call failed');
-      }
+      console.log('Fetched cards from backend:', fetchedCards);
+      console.log('Cards not found:', notFound);
 
-      const finalCards: { card_id: string; quantity: number }[] = [];
-      const unresolved: string[] = [...(notFound || [])];
+      const finalCards: SelectedCard[] = [];
 
-      cardsArray.forEach(card => {
-        const matchedCard = fetchedCards.find((fetchedCard: Card) =>
-          fetchedCard.name.toLowerCase() === card.name
+      cardsArray.forEach(inputCard => {
+        const match = fetchedCards.find(c =>
+          c.name.trim().toLowerCase() === inputCard.name.trim().toLowerCase()
         );
-        if (matchedCard) {
-          finalCards.push({
-            card_id: matchedCard.id,
-            quantity: card.count
-          });
-        } else if (!unresolved.includes(card.name)) {
-          unresolved.push(card.name);
+        if (match?.id) {
+          finalCards.push({ card: match.id, quantity: inputCard.count });
+        } else {
+          console.warn('Card not found in fetched cards:', inputCard.name);
         }
       });
 
-      if (unresolved.length > 0) {
-        alert(`These cards could not be found: ${unresolved.join(', ')}`);
+      if (notFound?.length) {
+        setErrorCards(notFound);
+        alert('Unresolved cards: ' + notFound.join(', '));
         return;
+      } else {
+        setErrorCards([]);
       }
 
-      const ownerId = user?.id || 'anonymous';
-      const deckPayload: Deck = {
+      const payload: Deck = {
         deck_name: deckName,
-        format: format,
+        format,
+        commander: format === 'commander' ? commander : undefined,
         deck_list: finalCards,
-        commander: format.toLowerCase() === 'commander' ? commander : undefined,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        owner_id: ownerId,
+        owner_id: user?.id || 'anonymous',
         tags: [],
         is_public: false,
       };
 
-      const deckResponse = await postDeckList(deckPayload);
-      alert('Deck created successfully!');
-      console.log('Deck created:', deckResponse.data);
+      console.log('Payload to submit:', payload);
+
+      await postDeckList(payload);
+
+      alert('Deck submitted successfully!');
+      // Reset all fields after successful submit
+      setDeckName('');
+      setDeckCards('');
+      setCommander('');
+      setCommanderSuggestions([]);
+      setShowSuggestions(false);
+      setErrorCards([]);
     } catch (err) {
-      console.error(err);
-      alert('Something went wrong while creating the deck.');
+      console.error('Submit error:', err);
+      alert('Failed to submit deck.');
     }
   };
 
-  const handleChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setter(e.target.value);
-  };
+  const handleChange = (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setter(e.target.value);
+    };
 
   const handleFormatChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setFormat(e.target.value);
-  };
-
-  const handleDeckNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setDeckName(e.target.value);
   };
 
   const handleCommanderChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -120,12 +135,15 @@ const Sandbox: React.FC = () => {
   };
 
   const fetchCommanderSuggestions = Debounce(async (query: string) => {
-    if (!query.trim()) return;
-  
+    if (!query.trim()) {
+      setCommanderSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
     try {
-      const response = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      setCommanderSuggestions(data.data);
+      const res = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setCommanderSuggestions(data.data || []);
       setShowSuggestions(true);
     } catch (err) {
       console.error("Autocomplete error:", err);
@@ -138,12 +156,9 @@ const Sandbox: React.FC = () => {
       <Title>Deck Builder</Title>
 
       <Section>
-        <Label>Create a New Deck</Label>
-        <Input
-          placeholder="Deck Name"
-          value={deckName}
-          onChange={handleDeckNameChange}
-        />
+        <Label>Deck Name</Label>
+        <Input value={deckName} placeholder="Deck Name" onChange={handleChange(setDeckName)} />
+
         <Label>Format</Label>
         <Select value={format} onChange={handleFormatChange}>
           <option value="commander">Commander</option>
@@ -151,26 +166,18 @@ const Sandbox: React.FC = () => {
           <option value="modern">Modern</option>
           <option value="legacy">Legacy</option>
           <option value="pauper">Pauper</option>
-          {/* Add more formats as needed */}
         </Select>
-        {/* {format.toLowerCase() === 'commander' && (
-          <Input
-            placeholder="Add your Commander"
-            value={commander}
-            onChange={handleChange(setCommander)}
-          />
-        )} */}
-
-        
       </Section>
-      {format.toLowerCase() === 'commander' && (
+
+      {format === 'commander' && (
         <>
+          <Label>Commander</Label>
           <Input
-            placeholder="Add your Commander"
             value={commander}
             onChange={handleCommanderChange}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // close after click
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             onFocus={() => commander && setShowSuggestions(true)}
+            placeholder="Add your Commander"
           />
           {showSuggestions && commanderSuggestions.length > 0 && (
             <SuggestionBox>
@@ -191,39 +198,38 @@ const Sandbox: React.FC = () => {
       )}
 
       <Section>
-        <Label>Advanced Options</Label>
+        <Label>Deck Cards (e.g. 4 Lightning Bolt)</Label>
         <DeckImport
           onImport={(cards) => {
-            const cardCountMap: { [key: string]: number } = {};
-            cards.forEach((card) => {
-              const cardName = card.name.toLowerCase(); // normalize name (e.g., case insensitive)
-              cardCountMap[cardName] = (cardCountMap[cardName] || 0) + 1;
+            // Count duplicates properly
+            const counts: Record<string, number> = {};
+            cards.forEach(card => {
+              const name = card.name.trim();
+              counts[name] = (counts[name] || 0) + 1;
             });
-
-            const formattedCards = Object.entries(cardCountMap)
-              .map(([cardName, count]) => `${count} ${cardName}`)
+            const formatted = Object.entries(counts)
+              .map(([name, count]) => `${count} ${name}`)
               .join('\n');
-
-            setDeckCards(formattedCards);
+            setDeckCards(formatted);
           }}
         />
 
-        {/* Display a large editable text area for the card list */}
-        {deckCards && (
-          <TextArea
-            value={deckCards}
-            onChange={handleChange(setDeckCards)}
-            rows={10}
-            placeholder="Edit your card list here..."
-          />
+        {errorCards.length > 0 && (
+          <ErrorCardsContainer>
+            <strong>Unresolved cards:</strong>
+            {errorCards.map(card => <div key={card}>{card}</div>)}
+          </ErrorCardsContainer>
         )}
+
+        <TextArea
+          rows={10}
+          value={deckCards}
+          onChange={handleChange(setDeckCards)}
+          placeholder="Enter cards one per line, e.g. '4 Lightning Bolt'"
+        />
       </Section>
 
-      <Button
-        name="Create Deck"
-        onClick={handleCreateDeck}
-        disabled={!deckName} // Disable button if deck name is empty
-      />
+      <Button name="Create Deck" onClick={handleCreateDeck} disabled={!deckName.trim()} />
     </Wrapper>
   );
 };
@@ -236,6 +242,7 @@ const Wrapper = styled.div`
   max-width: 800px;
   margin: 2rem auto;
   padding: 1rem;
+  position: relative;
 `;
 
 const Title = styled.h1`
@@ -248,19 +255,16 @@ const Section = styled.div`
 `;
 
 const Label = styled.h3`
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   color: #333;
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: 1rem;
-  font-family: sans-serif;
+  padding: 0.6rem;
   font-size: 1rem;
-  color: #333;
   border: 1px solid #ccc;
   border-radius: 5px;
-  margin-top: 1rem;
 `;
 
 const TextArea = styled.textarea`
@@ -268,12 +272,10 @@ const TextArea = styled.textarea`
   padding: 1rem;
   font-family: monospace;
   font-size: 1rem;
-  color: #333;
   border: 1px solid #ccc;
   border-radius: 5px;
+  margin-top: 0.5rem;
   resize: vertical;
-  margin-top: 1rem;
-  min-height: 150px;
 `;
 
 const SuggestionBox = styled.ul`
@@ -296,4 +298,12 @@ const SuggestionItem = styled.li`
   &:hover {
     background-color: #eee;
   }
+`;
+
+const ErrorCardsContainer = styled.div`
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: 1px solid red;
+  background-color: #fee;
+  color: #900;
 `;

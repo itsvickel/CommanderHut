@@ -17,13 +17,13 @@ const DeckPage = () => {
       });
   }, []);
 
-  const navigateToDeckList = (ID: number) =>{
+  const navigateToDeckList = (ID: number) => {
     navigate(ID);
   }
 
   const displayDeckList = () => {
-    return decks.map((item, index) => (
-      <DeckCard onClick={()=>navigateToDeckList(item.id)} key={index}>
+    return decks?.map((item, index) => (
+      <DeckCard onClick={() => navigateToDeckList(item.id)} key={index}>
         <DeckTitle>{item.deck_name}</DeckTitle>
         <DeckDetails>
           <span>Owner: {item.owner_email}</span>
