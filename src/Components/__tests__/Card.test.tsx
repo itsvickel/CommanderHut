@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
 import thunk from "redux-thunk";
-import Card from "../Card";
+import Card from "../Card/Card";
 import { setCard, setError, setLoading } from "../../store/cardSlice";
 import { fetchCardByQuery } from "../../services/cardService";
 import { RootState } from "../../store/store";

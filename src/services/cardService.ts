@@ -3,63 +3,63 @@ import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
 
  
-/**
- * Fetches a card by its name or ID.
- * @param {string} query - The name or ID of the card.
- * @returns {Promise<Card>} - Returns the card data.
- */
-export const fetchCardByQuery = async (query: string): Promise<Card> => {
-  try {
-    const response = await fetch(`${API_ENDPOINT.SCRYFALL}/search?q=${query}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch card with query: ${query}`);
-    }
-    const data = await response.json();
-    return data.data[0]; // Assuming we're returning the first card from the search
-  } catch (error) {
-    console.error('Error fetching card:', error);
-    throw error;
-  }
-};
+// /**
+//  * Fetches a card by its name or ID.
+//  * @param {string} query - The name or ID of the card.
+//  * @returns {Promise<Card>} - Returns the card data.
+//  */
+// export const fetchCardByQuery = async (query: string): Promise<Card> => {
+//   try {
+//     const response = await fetch(`${API_ENDPOINT.SCRYFALL}/search?q=${query}`);
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch card with query: ${query}`);
+//     }
+//     const data = await response.json();
+//     return data.data[0]; // Assuming we're returning the first card from the search
+//   } catch (error) {
+//     console.error('Error fetching card:', error);
+//     throw error;
+//   }
+// };
 
-/**
- * Fetches card details by its specific ID.
- * @param {string} cardId - The ID of the card.
- * @returns {Promise<Card>} - Returns the card data.
- */
-export const fetchCardById = async (cardId: string): Promise<Card> => {
-  try {
-    const response = await fetch(`${API_ENDPOINT.SCRYFALL}/${cardId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch card with ID: ${cardId}`);
-    }
-    const card = await response.json();
-    return card;
-  } catch (error) {
-    console.error('Error fetching card by ID:', error);
-    throw error;
-  }
-};
+// /**
+//  * Fetches card details by its specific ID.
+//  * @param {string} cardId - The ID of the card.
+//  * @returns {Promise<Card>} - Returns the card data.
+//  */
+// export const fetchCardById = async (cardId: string): Promise<Card> => {
+//   try {
+//     const response = await fetch(`${API_ENDPOINT.SCRYFALL}/${cardId}`);
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch card with ID: ${cardId}`);
+//     }
+//     const card = await response.json();
+//     return card;
+//   } catch (error) {
+//     console.error('Error fetching card by ID:', error);
+//     throw error;
+//   }
+// };
 
-/**
- * Fetches a card by its name 
- * @param {string} query - The name the card.
- * @returns {Promise<Card>} - Returns the card data.
- */
-export const fetchCardByName = async (query: string): Promise<Card> => {
-  try {
-    const response = await fetch(`${API_ENDPOINT.CARD_QUERY}${query}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch card with query: ${query}`);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data; // Assuming we're returning the first card from the search
-  } catch (error) {
-    console.error('Error fetching card:', error);
-    throw error;
-  }
-};
+// /**
+//  * Fetches a card by its name 
+//  * @param {string} query - The name the card.
+//  * @returns {Promise<Card>} - Returns the card data.
+//  */
+// export const fetchCardByName = async (query: string): Promise<Card> => {
+//   try {
+//     const response = await fetch(`${API_ENDPOINT.CARD_QUERY}${query}`);
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch card with query: ${query}`);
+//     }
+//     const data = await response.json();
+//     console.log(data);
+//     return data; // Assuming we're returning the first card from the search
+//   } catch (error) {
+//     console.error('Error fetching card:', error);
+//     throw error;
+//   }
+// };
 
 
 const API_KEY = import.meta.env.VITE_TOGETHER_API_KEY; // Ensure this is set in your .env file
@@ -96,11 +96,10 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
   }
 };
 
-<<<<<<< Updated upstream
 export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
   try {
     const response = await axios.post(
-      API_AI_URL,
+      API_ENDPOINT.AI_TOGETHER_BASE,
       {
         model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", // ✅ Make sure this model is available
         messages: [
@@ -128,7 +127,6 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
     return [];
   }
 };
-=======
 /**
  * Fetches a random list of card details.
  * @param {number} limit - The number of random cards to fetch.
@@ -148,4 +146,63 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
     throw error;
   }
 };
->>>>>>> Stashed changes
+
+/**
+ * Fetches a list of cards matching the fuzzy name.
+ * @param {string} name - The search query.
+ * @returns {Promise<Card[]>} - An array of card results.
+ */
+export const fetchCardByName = async (name: string): Promise<Card[]> => {
+  try {
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_NAME+`${name}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch the cards");
+    }
+
+    const cards = await response.json();
+    return cards;
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch the specific card by ID.
+ * @param {number} ID - The search query.
+ * @returns {Promise<Card>} - Return a single card.
+ */
+export const fetchCardByID = async (ID: number): Promise<Card> => {
+  try {
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_ID+`${ID}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch the cards");
+    }
+
+    const cards = await response.json();
+    return cards;
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch the specific cards in bulk by names or IDs.
+ * @param {array} cards - The array of card names or IDs to search for.
+ * @returns {Promise<Card[]>} - Returns an array of cards.
+ */
+export const fetchCardBulk = async (cards: string[]): Promise<Card[]> => {
+  try {
+    // Sending the array of cards in the POST request body
+    const response = await axios.post(API_ENDPOINT.CARD_BULK, {
+      cards, // Send the array of card names in the request body
+    });
+
+    // Axios automatically parses the response, so we can directly access response.data
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    throw error; // Re-throwing the error for further handling
+  }
+};
