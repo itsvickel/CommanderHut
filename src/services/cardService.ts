@@ -206,3 +206,13 @@ export const fetchCardBulk = async (cards: string[]): Promise<Card[]> => {
     throw error; // Re-throwing the error for further handling
   }
 };
+
+export const fetchAllCards = async () => {
+  try {
+    const res = await axios.get(`${API_ENDPOINT.CARD_ALL}/all`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    return [];
+  }
+};

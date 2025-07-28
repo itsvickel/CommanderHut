@@ -1,20 +1,15 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
 import DeckImport from '../Components/Deck/DeckImport';
-import { fetchCardBulk } from '../services/cardService';
 import { postDeckList } from '../services/deckService';
 
 import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
-
-interface SelectedCard {
-  card: string;
-  quantity: number;
-}
+import { fetchAllCards } from '../services/cardService';
 
 interface RootState {
   auth: {
@@ -25,26 +20,49 @@ interface RootState {
   };
 }
 
+interface CommanderCard {
+  name: string;
+  image_uris?: {
+    small?: string;
+    normal?: string;
+  };
+  id: string;
+}
+
+const formatMap: Record<string, string> = {
+  commander: 'Commander',
+  standard: 'Standard',
+  modern: 'Modern',
+  legacy: 'Legacy',
+  pauper: 'Pauper',
+};
+
 const Sandbox: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const [deckName, setDeckName] = useState('');
   const [deckCards, setDeckCards] = useState('');
   const [format, setFormat] = useState('commander');
   const [commander, setCommander] = useState('');
-  const [commanderSuggestions, setCommanderSuggestions] = useState<string[]>([]);
+  const [commanderSuggestions, setCommanderSuggestions] = useState<CommanderCard[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedCommanderImage, setSelectedCommanderImage] = useState<string | null>(null);
+  const [allCards, setAllCards] = useState<any[]>([]);
   const [errorCards, setErrorCards] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchAllCards()
+      .then((all) => setAllCards(all))
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   const handleCreateDeck = async () => {
     console.log('=== Submitting Deck ===');
-    console.log('Deck name:', deckName);
-    console.log('Commander:', commander);
-    console.log('Deck cards raw input:', deckCards);
 
-    // Parse deckCards text into structured array [{name, count}]
-    const cardsArray = deckCards
+    const parsedCards = deckCards
       .split('\n')
-      .map(line => {
+      .map((line) => {
         const match = line.trim().match(/^(\d+)\s+(.+)$/);
         if (!match) return null;
         const [, count, name] = match;
@@ -52,77 +70,63 @@ const Sandbox: React.FC = () => {
       })
       .filter(Boolean) as { name: string; count: number }[];
 
-    console.log('Parsed cardsArray:', cardsArray);
-
-    if (cardsArray.length === 0) {
-      alert('Your deck list is empty or incorrectly formatted. Use lines like "4 Lightning Bolt".');
+    if (parsedCards.length === 0) {
+      alert('Deck list is empty or incorrectly formatted.');
       return;
     }
 
-    const cardNames = cardsArray.map(c => c.name);
-    console.log('Card names for fetch:', cardNames);
-
     try {
-      const { cards: fetchedCards, notFound } = await fetchCardBulk(cardNames);
-
-      console.log('Fetched cards from backend:', fetchedCards);
-      console.log('Cards not found:', notFound);
-
-      const finalCards: SelectedCard[] = [];
-
-      cardsArray.forEach(inputCard => {
-        const match = fetchedCards.find(c =>
-          c.name.trim().toLowerCase() === inputCard.name.trim().toLowerCase()
-        );
-        if (match?.id) {
-          finalCards.push({ card: match.id, quantity: inputCard.count });
-        } else {
-          console.warn('Card not found in fetched cards:', inputCard.name);
-        }
-      });
-
-      if (notFound?.length) {
-        setErrorCards(notFound);
-        alert('Unresolved cards: ' + notFound.join(', '));
-        return;
-      } else {
-        setErrorCards([]);
-      }
+      const deck_list = parsedCards.map(({ name, count }) => ({
+        card: name,
+        quantity: count,
+      }));
 
       const payload: Deck = {
         deck_name: deckName,
-        format,
+        format: formatMap[format.toLowerCase()] || 'Commander',
         commander: format === 'commander' ? commander : undefined,
-        deck_list: finalCards,
+        commander_image: format === 'commander' ? selectedCommanderImage || undefined : undefined,
+        deck_list,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        owner_id: user?.id || 'anonymous',
+        owner: user ? user?.id : 'anonymous',
         tags: [],
         is_public: false,
       };
 
-      console.log('Payload to submit:', payload);
+      const res = await postDeckList(payload);
 
-      await postDeckList(payload);
+      if (res?.notFound?.length > 0) {
+        setErrorCards(res.notFound);
+        alert('Some cards could not be found.');
+        return;
+      }
 
       alert('Deck submitted successfully!');
-      // Reset all fields after successful submit
       setDeckName('');
       setDeckCards('');
       setCommander('');
       setCommanderSuggestions([]);
       setShowSuggestions(false);
+      setSelectedCommanderImage(null);
       setErrorCards([]);
-    } catch (err) {
-      console.error('Submit error:', err);
-      alert('Failed to submit deck.');
+    } catch (err: any) {
+      console.log('Deck submit error:', err);
+
+      if (err?.details?.notFound?.length > 0) {
+        setErrorCards(err.details.notFound);
+        alert('Some cards could not be found.');
+      } else {
+        alert('Failed to submit deck.');
+      }
     }
   };
 
-  const handleChange = (setter: React.Dispatch<React.SetStateAction<string>>) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setter(e.target.value);
-    };
+  const handleChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setter(e.target.value);
+  };
 
   const handleFormatChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setFormat(e.target.value);
@@ -131,6 +135,7 @@ const Sandbox: React.FC = () => {
   const handleCommanderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCommander(value);
+    setSelectedCommanderImage(null);
     fetchCommanderSuggestions(value);
   };
 
@@ -141,12 +146,26 @@ const Sandbox: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`);
+      // Using Scryfall search endpoint for commander cards with images
+      const res = await fetch(
+        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}+is:commander&unique=prints`
+      );
       const data = await res.json();
-      setCommanderSuggestions(data.data || []);
-      setShowSuggestions(true);
+
+      if (data.object !== 'error') {
+        const results = data.data.map((card: any) => ({
+          name: card.name,
+          image_uris: card.image_uris,
+          id: card.id,
+        }));
+
+        setCommanderSuggestions(results);
+        setShowSuggestions(true);
+      } else {
+        setCommanderSuggestions([]);
+      }
     } catch (err) {
-      console.error("Autocomplete error:", err);
+      console.error('Autocomplete error:', err);
       setCommanderSuggestions([]);
     }
   }, 300);
@@ -181,29 +200,42 @@ const Sandbox: React.FC = () => {
           />
           {showSuggestions && commanderSuggestions.length > 0 && (
             <SuggestionBox>
-              {commanderSuggestions.map((suggestion) => (
+              {commanderSuggestions.map((card) => (
                 <SuggestionItem
-                  key={suggestion}
+                  key={card.id}
                   onClick={() => {
-                    setCommander(suggestion);
+                    setCommander(card.name);
+                    setSelectedCommanderImage(card.image_uris?.normal || null);
                     setShowSuggestions(false);
                   }}
                 >
-                  {suggestion}
+                  {card.image_uris?.small && (
+                    <img
+                      src={card.image_uris.small}
+                      alt={card.name}
+                      style={{ width: '40px', marginRight: '10px', verticalAlign: 'middle' }}
+                    />
+                  )}
+                  {card.name}
                 </SuggestionItem>
               ))}
             </SuggestionBox>
+          )}
+          {selectedCommanderImage && (
+            <CommanderImageWrapper>
+              <img src={selectedCommanderImage} alt="Selected Commander" />
+            </CommanderImageWrapper>
           )}
         </>
       )}
 
       <Section>
         <Label>Deck Cards (e.g. 4 Lightning Bolt)</Label>
+
         <DeckImport
           onImport={(cards) => {
-            // Count duplicates properly
             const counts: Record<string, number> = {};
-            cards.forEach(card => {
+            cards.forEach((card) => {
               const name = card.name.trim();
               counts[name] = (counts[name] || 0) + 1;
             });
@@ -215,10 +247,14 @@ const Sandbox: React.FC = () => {
         />
 
         {errorCards.length > 0 && (
-          <ErrorCardsContainer>
-            <strong>Unresolved cards:</strong>
-            {errorCards.map(card => <div key={card}>{card}</div>)}
-          </ErrorCardsContainer>
+          <ErrorBox>
+            <h4>❌ The following cards were not found:</h4>
+            <ul>
+              {errorCards.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </ErrorBox>
         )}
 
         <TextArea
@@ -295,15 +331,43 @@ const SuggestionBox = styled.ul`
 const SuggestionItem = styled.li`
   padding: 0.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+
   &:hover {
     background-color: #eee;
   }
+
+  img {
+    margin-right: 10px;
+    border-radius: 3px;
+  }
 `;
 
-const ErrorCardsContainer = styled.div`
+const ErrorBox = styled.div`
+  background-color: #ffe6e6;
+  border: 1px solid #cc0000;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  color: #a00000;
+
+  ul {
+    padding-left: 1.2rem;
+    margin: 0;
+  }
+
+  h4 {
+    margin-top: 0;
+  }
+`;
+
+const CommanderImageWrapper = styled.div`
   margin-top: 1rem;
-  padding: 0.5rem;
-  border: 1px solid red;
-  background-color: #fee;
-  color: #900;
+
+  img {
+    max-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  }
 `;

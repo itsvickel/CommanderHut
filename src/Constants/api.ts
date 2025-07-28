@@ -18,10 +18,12 @@ const API_ENDPOINT = {
   CARD_QUERY_BY_ID: import.meta.env.VITE_API_CARD_QUERY_BY_ID,
   RANDOM_CARD_LIST: import.meta.env.VITE_API_RANDOM_CARD_LIST,
   CARD_BULK: import.meta.env.VITE_API_CARD_BULK,
+  CARD_ALL: import.meta.env.VITE_API_CARD_ALL,
 
   // ========== 🧠 AI ==========
   AI_GENERATE: import.meta.env.VITE_API_AI_GENERATE,
   AI_TOGETHER_BASE: import.meta.env.VITE_API_AI_TOGETHER_BASE,
+  BASE_URL_AI: import.meta.env.VITE_API_BASE_URL_AI,
 
   // ========== 🃏 Decks ==========
   DECK_BASE_URL: import.meta.env.VITE_API_DECKS_BASE_URL,

@@ -2,9 +2,6 @@ import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
 
-// deckService.ts
-import { Deck } from '../interfaces/deck';
-
 interface SelectedCard {
   id: string;
   quantity?: number;
@@ -24,23 +21,28 @@ interface SelectedCard {
  */
 
 export const postDeckList = async (payload: any) => {
-  console.log(payload);
   try {
     const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),  // <-- Important: stringify full payload object
+      body: JSON.stringify(payload),
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Attach backend error details for UI to consume
+      const error = new Error(result.error || 'Failed to post deck');
+      (error as any).details = result;
+      throw error;
     }
-    return await response.json();
+
+    return result;
   } catch (error) {
     console.error('Error posting deck:', error);
-    return null;
+    throw error; // Let caller handle the error object
   }
 };
 
