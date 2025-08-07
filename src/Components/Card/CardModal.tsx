@@ -26,12 +26,6 @@ const CardModal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
 
 export default CardModal;
 
-const Container = styled.div`
-  
-
-`;
-
-
 const Overlay = styled.div`
   position: fixed;
   inset: 0;

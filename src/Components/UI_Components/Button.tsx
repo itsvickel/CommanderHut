@@ -5,10 +5,11 @@ import styled from 'styled-components';
 interface Props {
   name?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
 }
 
-const Button = ({ name, onClick }: Props) => {
-  return <ButtonContainer onClick={onClick}>{name}</ButtonContainer>;
+const Button = ({ name, onClick, disabled }: Props) => {
+  return <ButtonContainer onClick={onClick} disabled={disabled}>{name}</ButtonContainer>;
 };
 
 export default Button;
@@ -24,5 +25,10 @@ const ButtonContainer = styled.button`
 
   &:hover {
     background-color: #3b5bdb;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;

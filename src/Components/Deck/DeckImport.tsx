@@ -88,18 +88,6 @@ const DeckImport: React.FC<DeckImportProps> = ({ onImport }) => {
     }
   };
 
-  // Group the cards by name and count duplicates
-  const countCards = (cards: DeckCard[]) => {
-    const cardCountMap: { [key: string]: number } = {};
-    cards.forEach((card) => {
-      const key = card.name;
-      cardCountMap[key] = (cardCountMap[key] || 0) + 1;
-    });
-    return cardCountMap;
-  };
-
-  const cardCountMap = countCards(previewCards);
-
   return (
     <Container>
       <Header>

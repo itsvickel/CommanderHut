@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchDeckListByID } from '../../services/deckService';
@@ -68,6 +68,46 @@ const DeckList = () => {
     });
   };
 
+  const serializeTextList = (): string => {
+    if (!deck || !deck.card_list || deck.card_list.length === 0) return '';
+
+    const nameToCount = new Map<string, number>();
+    deck.card_list.forEach((c: Card) => {
+      const prev = nameToCount.get(c.name) || 0;
+      nameToCount.set(c.name, prev + 1);
+    });
+
+    return Array.from(nameToCount.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => `${count} ${name}`)
+      .join('\n');
+  };
+
+  const copyToClipboard = async () => {
+    const text = serializeTextList();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Deck list copied to clipboard');
+    } catch {
+      alert('Failed to copy');
+    }
+  };
+
+  const downloadTxt = () => {
+    const text = serializeTextList();
+    if (!text) return;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${deck?.deck_name || 'deck'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (!deck) return <div>Loading...</div>;
 
   return (
@@ -95,7 +135,8 @@ const DeckList = () => {
 
 
       <Download>
-        {/* buttons -> mana value, name,  */}
+        <ActionButton onClick={copyToClipboard}>Copy decklist</ActionButton>
+        <ActionButton onClick={downloadTxt}>Download .txt</ActionButton>
       </Download>
 
 
@@ -104,7 +145,7 @@ const DeckList = () => {
           <TypeSection key={type}>
             <h3>{type}</h3>
             <TextList>
-              {filterCards(cards).map((card) => (
+              {(filterCards(cards) as CardWithCount[]).map((card) => (
                 <CardRow key={card.id} onClick={() => setSelectedCard(card)}>
                   <span>{card.count}x</span> {card.name}
                   <HoverImage src={card?.image_uris?.normal} alt={card.name} />
@@ -332,5 +373,20 @@ const Filters = styled.div`
 `;
 
 const Download = styled.div`
-  
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+`;
+
+const ActionButton = styled.button`
+  padding: 8px 12px;
+  background: #2c7be5;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  &:hover {
+    background: #1a68d1;
+  }
 `;

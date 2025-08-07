@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import AIGenerate from './pages/AIGenerate';
-import Title from './Components/UI_Components/Title';
 import Navbar from './Components/Navbar';
 import CardPage from './pages/CardPage';
 import DeckPage from './pages/DeckPage';
@@ -13,31 +10,29 @@ import Sandbox from './pages/Sandbox';
 import Authentication from './pages/Authentication';
 import RegisterUser from './pages/RegisterUser';
 
-import colors from './styles/colors'; 
-import { login, logout } from './store/authSlice';
-import { RootState } from '../src/store';
+import colors from './styles/colors';
+import { RootState } from './store';
 import Home from './pages/home';
 import useAuth from './hooks/useAuth';
 import DeckList from './Components/Deck/DeckList';
 
-const AppComponent = () => { 
+const AppComponent = () => {
   useAuth();
 
   const isLogged = useSelector((state: RootState) => state.auth.isAuthenticated);
- 
 
-  const navigationObj = [ 
+  const navigationObj = [
     { name: 'Cards', to: '/cards' },
     { name: 'Decks', to: '/decks' },
     { name: 'Sandbox', to: '/sandbox' },
     { name: 'AI Decksmith', to: '/decksmith' },
-    { name: isLogged ? "" : 'Register', to: '/register' },
-    { name: isLogged ? "" : 'Login', to: '/Authentication' },
+    { name: isLogged ? '' : 'Register', to: '/register' },
+    { name: isLogged ? '' : 'Login', to: '/Authentication' },
   ];
 
   return (
     <MainWrapper>
-      <Navbar obj={navigationObj}  />
+      <Navbar obj={navigationObj} />
 
       <Routes>
         <Route path="/decksmith" element={<AIGenerate />} />
@@ -46,7 +41,7 @@ const AppComponent = () => {
         <Route path="/cards" element={<CardPage />} />
         <Route path="/sandbox" element={<Sandbox />} />
         <Route path="/register" element={<RegisterUser />} />
-        <Route path="/Authentication" element={<Authentication />} /> 
+        <Route path="/Authentication" element={<Authentication />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </MainWrapper>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { fetchAllDecks } from '../services/deckService';
 import { useNavigate } from 'react-router-dom';
@@ -18,8 +18,8 @@ const DeckPage = () => {
   }, []);
 
   const navigateToDeckList = (ID: number) =>{
-    navigate(ID);
-  }
+    navigate(`/decks/${ID}`);
+  };
 
   const displayDeckList = () => {
     return decks.map((item, index) => (

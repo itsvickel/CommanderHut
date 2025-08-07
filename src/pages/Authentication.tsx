@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; 
+import { useState } from "react"; 
 
 import styled from 'styled-components';
 import {Label,Input, Button } from "../Components/UI_Components";
@@ -6,7 +6,7 @@ import { loginUser } from "../services/userService";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { login } from '../store/authSlice';
+import { login } from '../store/AuthSlice';
 
 const Authentication = () => {
     const navigate = useNavigate();
@@ -21,7 +21,6 @@ const Authentication = () => {
             email_address: email,
             password: password,
         }).then((res)=>{
-            console.log(res);    
             if(res){
                 navigate('/'); 
                 dispatch(login(res?.data?.user));  

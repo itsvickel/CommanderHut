@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import CardModal from './CardModal';
-import type { Card } from "../../Interface/index";
+import type { Card } from "../../Interface/cards";
 
 interface CardProps {
-  key?: number;
   obj: Card;
 }
 
-const CardItem: React.FC<CardProps> = ({ obj, key }) => {
+const CardItem: React.FC<CardProps> = ({ obj }) => {
   const [isModal, setIsModal] = useState<boolean>(false);
 
   return (
-    <CardWrapper key={key} $modalOpen={isModal}>
+    <CardWrapper>
       {obj ? (
         <>
-          <CardBox onClick={() => !isModal && setIsModal(true)} $modalOpen={isModal}>
+          <CardBox onClick={() => !isModal && setIsModal(true)} $modalopen={isModal}>
             <CardImage
               src={obj?.image_uris?.large || obj?.image_uris?.normal}
               alt={obj.name}
@@ -42,14 +41,16 @@ const CardItem: React.FC<CardProps> = ({ obj, key }) => {
               <Detail><strong>Artist:</strong> {obj.artist}</Detail>
               <Detail><strong>Released:</strong> {obj.released_at}</Detail>
               <Detail><strong>Layout:</strong> {obj.layout}</Detail>
-              <LegalitiesTable>
+              {obj.legalities && (
+                <LegalitiesTable>
                   {Object.entries(obj.legalities).map(([format, status]) => (
-                    <LegalItem>
+                    <LegalItem key={format}>
                       <td>{format.toUpperCase()}</td>
                       <td>{status === 'legal' ? '✅' : '❌'}</td>
                     </LegalItem>
                   ))}
-              </LegalitiesTable>
+                </LegalitiesTable>
+              )}
             </CardDetails>
           </ModalContent>
         </CardModal>
@@ -72,12 +73,12 @@ const CardWrapper = styled.div`
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 `;
 
-const CardBox = styled.div<{ $modalOpen: boolean }>`
-  cursor: ${({ $modalOpen }) => ($modalOpen ? 'default' : 'pointer')};
+const CardBox = styled.div<{ $modalopen: boolean }>`
+  cursor: ${({ $modalopen }) => ($modalopen ? 'default' : 'pointer')};
   transition: transform 0.2s ease;
 
-  ${({ $modalOpen }) =>
-    !$modalOpen &&
+  ${({ $modalopen }) =>
+    !$modalopen &&
     `
     &:hover {
       transform: scale(1.05);

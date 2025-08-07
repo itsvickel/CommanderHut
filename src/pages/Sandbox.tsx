@@ -11,11 +11,6 @@ import { postDeckList } from '../services/deckService';
 import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
 
-interface SelectedCard {
-  cardId: string;
-  quantity: number;
-}
-
 interface RootState {
   auth: {
     user: {
@@ -27,10 +22,9 @@ interface RootState {
 
 const Sandbox: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const isLoggedIn = !!user;
 
   const [deckName, setDeckName] = useState<string>('');
-  const [deckCards, setDeckCards] = useState<string>(''); // Store as a string for editable text
+  const [deckCards, setDeckCards] = useState<string>('');
   const [format, setFormat] = useState<string>('commander');
   const [commander, setCommander] = useState<string>('');
   const [commanderSuggestions, setCommanderSuggestions] = useState<string[]>([]);
@@ -46,26 +40,26 @@ const Sandbox: React.FC = () => {
       })
       .filter(card => card.name && !isNaN(card.count));
 
-    const cardNames = cardsArray.map(card => card.name); 
+    const cardNames = cardsArray.map(card => card.name);
 
     try {
-      const { cards: fetchedCards, notFound } = await fetchCardBulk(cardNames);
+      const fetchedCards: any[] = await fetchCardBulk(cardNames);
 
       if (!fetchedCards || fetchedCards.length === 0) {
         throw new Error('No cards were found or the API call failed');
       }
 
-      const finalCards: { card_id: string; quantity: number }[] = [];
-      const unresolved: string[] = [...(notFound || [])];
+      const finalCards: { id: number; quantity: number }[] = [];
+      const unresolved: string[] = [];
 
       cardsArray.forEach(card => {
-        const matchedCard = fetchedCards.find((fetchedCard: Card) =>
+        const matchedCard = fetchedCards.find((fetchedCard: any) =>
           fetchedCard.name.toLowerCase() === card.name
         );
         if (matchedCard) {
           finalCards.push({
-            card_id: matchedCard.id,
-            quantity: card.count
+            id: Number(matchedCard.id),
+            quantity: card.count,
           });
         } else if (!unresolved.includes(card.name)) {
           unresolved.push(card.name);
@@ -151,17 +145,7 @@ const Sandbox: React.FC = () => {
           <option value="modern">Modern</option>
           <option value="legacy">Legacy</option>
           <option value="pauper">Pauper</option>
-          {/* Add more formats as needed */}
         </Select>
-        {/* {format.toLowerCase() === 'commander' && (
-          <Input
-            placeholder="Add your Commander"
-            value={commander}
-            onChange={handleChange(setCommander)}
-          />
-        )} */}
-
-        
       </Section>
       {format.toLowerCase() === 'commander' && (
         <>
@@ -169,7 +153,7 @@ const Sandbox: React.FC = () => {
             placeholder="Add your Commander"
             value={commander}
             onChange={handleCommanderChange}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // close after click
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onFocus={() => commander && setShowSuggestions(true)}
           />
           {showSuggestions && commanderSuggestions.length > 0 && (
@@ -196,7 +180,7 @@ const Sandbox: React.FC = () => {
           onImport={(cards) => {
             const cardCountMap: { [key: string]: number } = {};
             cards.forEach((card) => {
-              const cardName = card.name.toLowerCase(); // normalize name (e.g., case insensitive)
+              const cardName = card.name.toLowerCase();
               cardCountMap[cardName] = (cardCountMap[cardName] || 0) + 1;
             });
 
@@ -208,7 +192,6 @@ const Sandbox: React.FC = () => {
           }}
         />
 
-        {/* Display a large editable text area for the card list */}
         {deckCards && (
           <TextArea
             value={deckCards}
@@ -222,7 +205,7 @@ const Sandbox: React.FC = () => {
       <Button
         name="Create Deck"
         onClick={handleCreateDeck}
-        disabled={!deckName} // Disable button if deck name is empty
+        disabled={!deckName}
       />
     </Wrapper>
   );

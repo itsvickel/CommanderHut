@@ -1,18 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
-import API_ENDPOINT from '../../Constants/api';
 import SearchBar from '../UI_Components/Searchbar';
 import { fetchCardByName } from '../../services/cardService';
-import { Card } from '../../Interface/index';
-
+import type { Card } from '../../Interface/cards';
 import CardItem from '../Card/CardItem';
-import {Button, Input} from '../UI_Components/index';
-
-import DeckFormat from '../../Constants/constant';
-
-import { postDeckList } from '../../services/deckService';
-
-import { useSelector } from 'react-redux';
+import { Input } from '../UI_Components/index';
 
 // Define the Props interface outside the component for better readability
 interface DeckProps {
@@ -23,7 +15,7 @@ interface DeckProps {
 // Function to group cards by their type
 const groupCardsByType = (cards: Card[]) => {
   return cards.reduce((acc: Record<string, Card[]>, card) => {
-    const type = card.type_line?.split(' — ')[0] || 'Other'; // Default to 'Other' if no type is available
+    const type = card.type_line?.split(' — ')[0] || 'Other';
     if (!acc[type]) acc[type] = [];
     acc[type].push(card);
     return acc;
@@ -32,10 +24,6 @@ const groupCardsByType = (cards: Card[]) => {
 
 const CustomDeck = ({ card, key }: DeckProps) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>(card || []);
-  const [deckName, setDeckName] = useState<string>("");
-  
-  const user = useSelector((state: RootState) => state.auth.user);
-
 
   const fetchOptions = async (query: string) => {
     return await fetchCardByName(query);
@@ -47,24 +35,6 @@ const CustomDeck = ({ card, key }: DeckProps) => {
     }
   };
 
-  const SubmitDeck = () =>{
-
-    // email_address,
-    // deck_name,
-    // format,
-    // commander,
-    // tags,
-    // is_public,
-    // cards: selectedCards, 
-    postDeckList(user.email_address,deckName,DeckFormat.Commander, selectedCards).then((res)=>{
-      if(res){
-        setSelectedCards([]);
-        setDeckName('');
-      }
-    });
-
-  }
-
   // Group the selected cards by their type
   const groupedCards = groupCardsByType(selectedCards);
 
@@ -72,7 +42,7 @@ const CustomDeck = ({ card, key }: DeckProps) => {
     <Wrapper key={key}>
       <SearchBar fetchOptions={fetchOptions} onSelect={handleSelect} />
 
-      <Input placeholder='deck name' onChange={(e)=>setDeckName(e.target.value)}/>
+      <Input placeholder='deck name' onChange={() => {}}/>
       <StackContainer>
         {groupedCards ?
         <>
@@ -89,7 +59,6 @@ const CustomDeck = ({ card, key }: DeckProps) => {
             </CardList>
           </CardGroup>
         ))}
-        <Button onClick={SubmitDeck} name={'Submit'}/>         
         </> 
         : null}
       </StackContainer>

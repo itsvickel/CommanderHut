@@ -1,31 +1,19 @@
-import React from 'react';
-
-import styled from 'styled-components';
-
+import { FC } from 'react';
 import { Modal } from '../UI_Components';
 
-// Define the Props interface outside the component for better readability
-interface DeckProps {
- 
-}
+interface DeckProps {}
 
-// Update the component to accept props of type CardProps
-const DeckCreation: React.FC<DeckProps> = ({ obj, key }) => {
+const DeckCreation: FC<DeckProps> = () => {
   return (
-    <div key={key}>
-        <Modal
-        isOpen={true}
-        onClose={() => setOpen(false)}
-        onSubmit={() => {
-          console.log("Submitted:", text);
-          setOpen(false);
-        }}
+    <div>
+      <Modal
+        isOpen={false}
+        onClose={() => {}}
+        onSubmit={() => {}}
         submitLabel="Create"
-        title="Edit Info"
+        title="Create Deck"
       >
-        <div>
-            hi
-        </div>
+        <div>Coming soon</div>
       </Modal>
     </div>
   );

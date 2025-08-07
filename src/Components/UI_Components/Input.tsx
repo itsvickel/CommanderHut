@@ -4,15 +4,19 @@ interface Props {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   value?: string;
   placeholder?: string;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
 }
 
-const Input = ({ onChange, value, placeholder }: Props) => {
+const Input = ({ onChange, value, placeholder, onBlur, onFocus }: Props) => {
   return (
     <StyledInput
       type="text"
       onChange={onChange}
       value={value}
       placeholder={placeholder}
+      onBlur={onBlur}
+      onFocus={onFocus}
     />
   );
 };

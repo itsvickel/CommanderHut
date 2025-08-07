@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { login, logout } from '../store/authSlice';
+import { login, logout } from '../store/AuthSlice';
 
 const useAuth = () => {
   const dispatch = useDispatch();

@@ -1,7 +1,6 @@
 import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
-
  
 // /**
 //  * Fetches a card by its name or ID.
@@ -90,8 +89,8 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
       .split(",")
       .map((card: string) => card.trim());
 
-  } catch (error) {
-    console.error("Error fetching cards from AI:", error.response?.data || error);
+  } catch (error: any) {
+    console.error("Error fetching cards from AI:", error?.response?.data || error);
     return [];
   }
 };
@@ -122,8 +121,8 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
       .split(",")
       .map((card: string) => card.trim());
 
-  } catch (error) {
-    console.error("Error fetching cards from AI:", error.response?.data || error);
+  } catch (error: any) {
+    console.error("Error fetching cards from AI:", error?.response?.data || error);
     return [];
   }
 };
@@ -192,7 +191,7 @@ export const fetchCardByID = async (ID: number): Promise<Card> => {
  * @param {array} cards - The array of card names or IDs to search for.
  * @returns {Promise<Card[]>} - Returns an array of cards.
  */
-export const fetchCardBulk = async (cards: string[]): Promise<Card[]> => {
+export const fetchCardBulk = async (cards: string[]): Promise<any[]> => {
   try {
     // Sending the array of cards in the POST request body
     const response = await axios.post(API_ENDPOINT.CARD_BULK, {
