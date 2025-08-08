@@ -10,7 +10,6 @@ import Sandbox from './pages/Sandbox';
 import Authentication from './pages/Authentication';
 import RegisterUser from './pages/RegisterUser';
 
-import colors from './styles/colors';
 import { RootState } from './store';
 import Home from './pages/home';
 import useAuth from './hooks/useAuth';
@@ -31,7 +30,7 @@ const AppComponent = () => {
   ];
 
   return (
-    <MainWrapper>
+    <AppShell>
       <Navbar obj={navigationObj} />
 
       <Routes>
@@ -44,11 +43,10 @@ const AppComponent = () => {
         <Route path="/Authentication" element={<Authentication />} />
         <Route path="/" element={<Home />} />
       </Routes>
-    </MainWrapper>
+    </AppShell>
   );
 };
 
-// Wrap with Router in root index.tsx (not here)
 export default function App() {
   return (
     <Router>
@@ -57,15 +55,7 @@ export default function App() {
   );
 }
 
-const MainWrapper = styled.div`
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-  margin: 0;
-  background: ${colors.greyE8E8E8};
-  color: ${colors.black};
+const AppShell = styled.div`
+  min-height: 100vh;
+  width: 100%;
 `;

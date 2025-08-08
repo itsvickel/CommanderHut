@@ -179,24 +179,26 @@ export default DeckList;
 // ---------- STYLED COMPONENTS ----------
 
 const Wrapper = styled.div`
-  padding: 2rem;
-  width: 90vw;
-  height: 80vh;
+  padding: ${({ theme }) => theme.spacing.xl};
+  width: 100%;
+  max-width: 1200px;
+  height: calc(100vh - 80px);
   margin: 0 auto;
-  background: #f9f9f9;
-  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const FilterBar = styled.div`
   display: flex;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin: ${({ theme }) => theme.spacing.lg} 0;
   justify-content: center;
 
   input {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    padding: ${({ theme }) => theme.spacing.sm};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.radii.sm};
     font-size: 1rem;
     width: 200px;
   }
@@ -207,20 +209,19 @@ const CardContainer = styled.div`
   flex-wrap: wrap;
   overflow: auto;
   height: 80%;
-  margin: 2% 5%;
+  margin: ${({ theme }) => theme.spacing.md} auto;
 `;
 
 const TypeSection = styled.div`
-
-  margin-bottom: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
   flex: 25%;
   h3 {
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 0.25rem;
-    margin-bottom: 0.5rem;
+    border-bottom: 2px solid ${({ theme }) => theme.colors.border};
+    padding-bottom: ${({ theme }) => theme.spacing.xs};
+    margin-bottom: ${({ theme }) => theme.spacing.sm};
     text-align: left;
     font-size: 1.2rem;
-    color: #333;
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -229,13 +230,13 @@ const TextList = styled.ul`
   padding-left: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: ${({ theme }) => theme.spacing.xs};
   text-align: left;
 `;
 
 const CardRow = styled.li`
   position: relative;
-  padding: 0.5rem;
+  padding: ${({ theme }) => theme.spacing.sm};
   cursor: pointer;
   font-family: monospace;
   color: #0077cc;
@@ -250,7 +251,7 @@ const CardRow = styled.li`
 
   span {
     font-weight: bold;
-    margin-right: 0.5rem;
+    margin-right: ${({ theme }) => theme.spacing.xs};
   }
 `;
 
@@ -260,9 +261,9 @@ const HoverImage = styled.img`
   top: -10px;
   left: 250px;
   width: 200px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ theme }) => theme.colors.white};
   z-index: 10;
 `;
 
@@ -280,16 +281,16 @@ const CardModal = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  padding: 2rem;
-  border-radius: 16px;
+  background: ${({ theme }) => theme.colors.surface};
+  padding: ${({ theme }) => theme.spacing.xl};
+  border-radius: ${({ theme }) => theme.radii.lg};
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2rem;
+  gap: ${({ theme }) => theme.spacing.xl};
   max-width: 900px;
   max-height: 80vh;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: ${({ theme }) => theme.shadows.md};
   overflow: hidden;
   animation: fadeInScale 0.3s ease;
 
@@ -297,9 +298,9 @@ const ModalContent = styled.div`
     height: auto;
     max-height: 60vh;
     width: auto;
-    border-radius: 12px;
+    border-radius: ${({ theme }) => theme.radii.md};
     object-fit: contain;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: ${({ theme }) => theme.shadows.sm};
   }
 
   @keyframes fadeInScale {
@@ -321,36 +322,27 @@ const CardInfo = styled.div`
 
   h2 {
     font-size: 1.75rem;
-    margin: 0 0 1rem;
-    color: #222;
+    margin: 0 0 ${({ theme }) => theme.spacing.md};
+    color: ${({ theme }) => theme.colors.text};
   }
 
   p {
-    margin: 0.5rem 0;
+    margin: ${({ theme }) => theme.spacing.xs} 0;
     line-height: 1.6;
-    color: #444;
+    color: ${({ theme }) => theme.colors.subtext};
   }
 
   strong {
-    color: #000;
+    color: ${({ theme }) => theme.colors.text};
     font-weight: 600;
   }
 
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
 `;
 
 const CloseButton = styled.button`
@@ -368,25 +360,21 @@ const CloseButton = styled.button`
   }
 `;
 
-const Filters = styled.div`
-
-`;
+const Filters = styled.div``;
 
 const Download = styled.div`
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const ActionButton = styled.button`
-  padding: 8px 12px;
-  background: #2c7be5;
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
+  background: ${({ theme }) => theme.colors.primary};
   border: none;
-  color: white;
-  border-radius: 6px;
+  color: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.radii.sm};
   cursor: pointer;
   font-size: 0.95rem;
-  &:hover {
-    background: #1a68d1;
-  }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `;

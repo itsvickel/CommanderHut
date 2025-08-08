@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout as logoutAction } from '../store/AuthSlice';
 import { RootState } from '../store';
 
-import colors from '../styles/colors';
 import { logoutUser } from '../services/userService.js';
 import Button from './UI_Components/Button.js';
 
@@ -27,26 +26,50 @@ const Navbar = ({ obj }: Props) => {
 
     return (
         <NavigationContainer>
-                {obj.map((item, index) => {
-                    return  <LinkItem key={index} to={item.to}>{item.name}</LinkItem> 
-                })}
-
-                { isLogged ? <Button onClick={logout} name={'Logout'} />  : null}
+          <NavRow>
+            <Brand>Commander Hut</Brand>
+            <Links>
+              {obj.map((item, index) => (
+                <LinkItem key={index} to={item.to}>{item.name}</LinkItem>
+              ))}
+            </Links>
+            { isLogged ? <Button onClick={logout} name={'Logout'} />  : null}
+          </NavRow>
         </NavigationContainer>
     );
 };
 
 export default Navbar;
 
-const NavigationContainer = styled.div`
-    width: 100%;
-    top: 0;
-    position: absolute;
-    margin: 2%;
+const NavigationContainer = styled.nav`
+  width: 100%;
+  position: sticky;
+  top: 0;
+  padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.xl}`};
+  background: ${({ theme }) => theme.colors.surface};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  z-index: 100;
+`;
+
+const NavRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const Brand = styled.div`
+  font-weight: 700;
+`;
+
+const Links = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.lg};
 `;
 
 const LinkItem = styled(Link)`
-    margin: 3%;
-    padding: 2%;
-    color: ${colors.black};
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
+  color: ${({ theme }) => theme.colors.text};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  &:hover { background: ${({ theme }) => theme.colors.greyE8E8E8}; }
 `;
