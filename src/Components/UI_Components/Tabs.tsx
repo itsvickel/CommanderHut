@@ -1,34 +1,28 @@
-import React, { ReactElement, useEffect, useState } from 'react';
-
 import styled from 'styled-components';
+import { useState } from 'react';
 
-// Define the Props interface outside the component for better readability
 interface TabProps {
   obj : { 
     key: number,
-    title?: String;
+    title?: string;
     component: React.ReactElement
   }[];
 }
 
-// Update the component to accept props of type CardProps
 const Tabs = ({ obj }: TabProps) => {
   const [tabCurrent, setCurrentTab] =  useState<number>(0);
 
   return (
     <Container>
-        <TabContainer>
-          {obj.map((item)=>{ 
-            return <TabName onClick={()=>setCurrentTab(item.key)}>{item.title}</TabName>
-          })}
-        </TabContainer>
+      <TabContainer>
+        {obj.map((item)=> (
+          <TabName key={item.key} onClick={()=>setCurrentTab(item.key)}>{item.title}</TabName>
+        ))}
+      </TabContainer>
 
-        {obj.map((item)=>{
-          if(item.key === tabCurrent){
-              return item.component 
-          }
-        })}
-
+      {obj.map((item)=> (
+        item.key === tabCurrent ? <div key={item.key}>{item.component}</div> : null
+      ))}
     </Container>
   );
 };

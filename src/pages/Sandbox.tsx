@@ -5,16 +5,11 @@ import { useSelector } from 'react-redux';
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
 import DeckImport from '../Components/Deck/DeckImport';
-import { fetchCardBulk } from '../services/cardService';
+import { fetchCardBulk, fetchCardByName } from '../services/cardService';
 import { postDeckList } from '../services/deckService';
 
 import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
-
-interface SelectedCard {
-  cardId: string;
-  quantity: number;
-}
 
 interface RootState {
   auth: {
@@ -27,14 +22,84 @@ interface RootState {
 
 const Sandbox: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const isLoggedIn = !!user;
 
   const [deckName, setDeckName] = useState<string>('');
-  const [deckCards, setDeckCards] = useState<string>(''); // Store as a string for editable text
+  const [deckCards, setDeckCards] = useState<string>('');
   const [format, setFormat] = useState<string>('commander');
   const [commander, setCommander] = useState<string>('');
   const [commanderSuggestions, setCommanderSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  const isBasicLand = (name: string, type_line?: string) => {
+    const basicNames = new Set([
+      'plains', 'island', 'swamp', 'mountain', 'forest', 'wastes',
+      'snow-covered plains', 'snow-covered island', 'snow-covered swamp', 'snow-covered mountain', 'snow-covered forest'
+    ]);
+    if (type_line && type_line.toLowerCase().includes('basic land')) return true;
+    return basicNames.has(name.toLowerCase());
+  };
+
+  const getCommanderColors = async (commanderName: string): Promise<Set<string>> => {
+    try {
+      const results: any[] = await fetchCardByName(commanderName);
+      const cmd = results && results.length > 0 ? results[0] : null;
+      const colors: string[] = (cmd?.color_identity || cmd?.colors || []) as string[];
+      return new Set(colors.map(c => c.toUpperCase()));
+    } catch {
+      return new Set<string>();
+    }
+  };
+
+  const validateCommanderDeck = async (
+    selectedCardsDetailed: { meta: any; quantity: number }[],
+    commanderName: string
+  ): Promise<string[]> => {
+    const errors: string[] = [];
+
+    if (!commanderName.trim()) {
+      errors.push('Commander is required for Commander format.');
+      return errors;
+    }
+
+    // 99 cards in deck list (commander separate)
+    const totalCount = selectedCardsDetailed.reduce((sum, c) => sum + c.quantity, 0);
+    if (totalCount !== 99) {
+      errors.push(`Commander decks must have exactly 99 cards (excluding commander). Current: ${totalCount}.`);
+    }
+
+    // Singleton rule (except basic lands)
+    selectedCardsDetailed.forEach(({ meta, quantity }) => {
+      const name = meta?.name || '';
+      const type_line = meta?.type_line || '';
+      if (quantity > 1 && !isBasicLand(name, type_line)) {
+        errors.push(`Non-singleton card detected: ${name} x${quantity}`);
+      }
+    });
+
+    // Color identity
+    const commanderColors = await getCommanderColors(commanderName);
+    if (commanderColors.size === 0) {
+      errors.push('Could not determine commander color identity.');
+      return errors;
+    }
+    const allowed = new Set(Array.from(commanderColors));
+    const offColorCards: string[] = [];
+
+    selectedCardsDetailed.forEach(({ meta }) => {
+      const colors: string[] = (meta?.color_identity || meta?.colors || []).map((c: string) => c.toUpperCase());
+      const legal = colors.every((c: string) => allowed.has(c));
+      if (!legal) {
+        offColorCards.push(meta?.name || 'Unknown Card');
+      }
+    });
+
+    if (offColorCards.length > 0) {
+      errors.push(`Cards outside commander color identity: ${offColorCards.slice(0, 10).join(', ')}${offColorCards.length > 10 ? '…' : ''}`);
+    }
+
+    return errors;
+  };
 
   const handleCreateDeck = async () => {
     const cardsArray = deckCards
@@ -46,35 +111,46 @@ const Sandbox: React.FC = () => {
       })
       .filter(card => card.name && !isNaN(card.count));
 
-    const cardNames = cardsArray.map(card => card.name); 
+    const cardNames = cardsArray.map(card => card.name);
 
     try {
-      const { cards: fetchedCards, notFound } = await fetchCardBulk(cardNames);
+      const fetchedCards: any[] = await fetchCardBulk(cardNames);
 
       if (!fetchedCards || fetchedCards.length === 0) {
         throw new Error('No cards were found or the API call failed');
       }
 
-      const finalCards: { card_id: string; quantity: number }[] = [];
-      const unresolved: string[] = [...(notFound || [])];
+      const selectedCardsDetailed: { meta: any; quantity: number }[] = [];
+      const finalCards: { id: number; quantity: number }[] = [];
+      const unresolved: string[] = [];
 
       cardsArray.forEach(card => {
-        const matchedCard = fetchedCards.find((fetchedCard: Card) =>
-          fetchedCard.name.toLowerCase() === card.name
+        const matchedCard = fetchedCards.find((fetchedCard: any) =>
+          (fetchedCard.name || '').toLowerCase() === card.name
         );
         if (matchedCard) {
-          finalCards.push({
-            card_id: matchedCard.id,
-            quantity: card.count
-          });
+          selectedCardsDetailed.push({ meta: matchedCard, quantity: card.count });
+          finalCards.push({ id: Number(matchedCard.id), quantity: card.count });
         } else if (!unresolved.includes(card.name)) {
           unresolved.push(card.name);
         }
       });
 
       if (unresolved.length > 0) {
+        setValidationErrors([`These cards could not be found: ${unresolved.join(', ')}`]);
         alert(`These cards could not be found: ${unresolved.join(', ')}`);
         return;
+      }
+
+      // Commander validation when applicable
+      if (format.toLowerCase() === 'commander') {
+        const errors = await validateCommanderDeck(selectedCardsDetailed, commander);
+        setValidationErrors(errors);
+        if (errors.length > 0) {
+          return;
+        }
+      } else {
+        setValidationErrors([]);
       }
 
       const ownerId = user?.id || 'anonymous';
@@ -151,17 +227,7 @@ const Sandbox: React.FC = () => {
           <option value="modern">Modern</option>
           <option value="legacy">Legacy</option>
           <option value="pauper">Pauper</option>
-          {/* Add more formats as needed */}
         </Select>
-        {/* {format.toLowerCase() === 'commander' && (
-          <Input
-            placeholder="Add your Commander"
-            value={commander}
-            onChange={handleChange(setCommander)}
-          />
-        )} */}
-
-        
       </Section>
       {format.toLowerCase() === 'commander' && (
         <>
@@ -169,7 +235,7 @@ const Sandbox: React.FC = () => {
             placeholder="Add your Commander"
             value={commander}
             onChange={handleCommanderChange}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // close after click
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onFocus={() => commander && setShowSuggestions(true)}
           />
           {showSuggestions && commanderSuggestions.length > 0 && (
@@ -196,7 +262,7 @@ const Sandbox: React.FC = () => {
           onImport={(cards) => {
             const cardCountMap: { [key: string]: number } = {};
             cards.forEach((card) => {
-              const cardName = card.name.toLowerCase(); // normalize name (e.g., case insensitive)
+              const cardName = card.name.toLowerCase();
               cardCountMap[cardName] = (cardCountMap[cardName] || 0) + 1;
             });
 
@@ -208,7 +274,6 @@ const Sandbox: React.FC = () => {
           }}
         />
 
-        {/* Display a large editable text area for the card list */}
         {deckCards && (
           <TextArea
             value={deckCards}
@@ -219,10 +284,21 @@ const Sandbox: React.FC = () => {
         )}
       </Section>
 
+      {validationErrors.length > 0 && (
+        <ValidationBox>
+          <strong>Deck checks failed:</strong>
+          <ul>
+            {validationErrors.map((err, idx) => (
+              <li key={idx}>{err}</li>
+            ))}
+          </ul>
+        </ValidationBox>
+      )}
+
       <Button
         name="Create Deck"
         onClick={handleCreateDeck}
-        disabled={!deckName} // Disable button if deck name is empty
+        disabled={!deckName}
       />
     </Wrapper>
   );
@@ -296,4 +372,13 @@ const SuggestionItem = styled.li`
   &:hover {
     background-color: #eee;
   }
+`;
+
+const ValidationBox = styled.div`
+  background: #fff6f6;
+  border: 1px solid #f5c2c2;
+  color: #a33;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 `;

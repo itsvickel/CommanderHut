@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { fetchCardByQuery, fetchCardsFromAI } from "../services/cardService";
 
 import {Button, Input, Label} from '../Components/UI_Components';
 

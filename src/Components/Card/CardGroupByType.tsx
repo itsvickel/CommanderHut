@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
-import { Card } from '../interfaces/card';
+import type { Card } from '../../Interface/cards';
 import CardItem from './CardItem';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const CardGroupByCustom: React.FC<Props> = () => {
-  const [customGroups, setCustomGroups] = useState<{ [key: string]: Card[] }>({});
+  const [customGroups, setCustomGroups] = useState<Record<string, Card[]>>({});
   const [newGroupName, setNewGroupName] = useState('');
 
   const addCustomGroup = () => {
@@ -17,20 +17,6 @@ const CardGroupByCustom: React.FC<Props> = () => {
       setCustomGroups({ ...customGroups, [trimmed]: [] });
       setNewGroupName('');
     }
-  };
-
-  const assignCardToGroup = (card: Card, groupName: string) => {
-    setCustomGroups(prev => ({
-      ...prev,
-      [groupName]: [...(prev[groupName] || []), card],
-    }));
-  };
-
-  const removeCardFromGroup = (card: Card, groupName: string) => {
-    setCustomGroups(prev => ({
-      ...prev,
-      [groupName]: prev[groupName]?.filter(c => c.name !== card.name),
-    }));
   };
 
   return (
