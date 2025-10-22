@@ -7,7 +7,7 @@ interface Card {
   id: string;
   name: string;
   mana_cost: string;
-  type_line: string;
+  type_line?: string;  // made optional because it might be missing
   image_url: string;
   oracle_text: string;
   image_uris?: { normal: string }; // fallback if using image_uris
@@ -24,46 +24,55 @@ const DeckList = () => {
   const [filter, setFilter] = useState({ name: '', mana: '' });
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-  const groupByType = (cards: Card[]) => {
+  const groupByType = (deckCards: DeckCard[]) => {
     const groups: Record<string, CardWithCount[]> = {};
     const cardMap = new Map<string, CardWithCount>();
-
-    cards.forEach((card) => {
+  
+    deckCards.forEach(({ card, quantity }) => {
       const key = card.name;
       if (cardMap.has(key)) {
-        cardMap.get(key)!.count += 1;
+        cardMap.get(key)!.count += quantity;
       } else {
-        cardMap.set(key, { ...card, count: 1 });
+        cardMap.set(key, { ...card, count: quantity });
       }
     });
-
+  
     cardMap.forEach((card) => {
-      const type = card.type_line.split(' — ')[0].split(' ')[0];
+      const typeLine = typeof card.type_line === 'string' ? card.type_line : "Unknown";
+      const type = typeLine.split(' — ')[0].split(' ')[0];
       if (!groups[type]) groups[type] = [];
       groups[type].push(card);
     });
-
+  
     setGroupedCards(groups);
   };
-
+  
   useEffect(() => {
     if (id) {
       fetchDeckListByID(id)
         .then((deckData) => {
-          setDeck(deckData.deck);
-          groupByType(deckData.deck.card_list);
+          console.log(deckData);
+          setDeck(deckData);
+          // pass the deckCards with card & quantity structure
+          groupByType(deckData.cards || []);
         })
         .catch((err) => {
           console.error('Error fetching deck by ID:', err);
         });
     }
   }, [id]);
+  
 
   const filterCards = (cards: Card[]) => {
     return cards.filter((card) => {
-      const matchesName = card.name.toLowerCase().includes(filter.name.toLowerCase());
-      const matchesMana =
-        !filter.mana || (card.mana_cost && card.mana_cost.includes(filter.mana));
+      const cardName = card.name || "";
+      const filterName = filter.name || "";
+      const cardMana = card.mana_cost || "";
+      const filterMana = filter.mana || "";
+  
+      const matchesName = cardName.toLowerCase().includes(filterName.toLowerCase());
+      const matchesMana = !filterMana || cardMana.includes(filterMana);
+  
       return matchesName && matchesMana;
     });
   };
@@ -90,14 +99,12 @@ const DeckList = () => {
       </FilterBar>
 
       <Filters>
-        {/* buttons -> mana value, name,  */}
+        {/* You can add extra filter buttons here */}
       </Filters>
 
-
       <Download>
-        {/* buttons -> mana value, name,  */}
+        {/* Add download buttons or export options here */}
       </Download>
-
 
       <CardContainer>
         {Object.entries(groupedCards).map(([type, cards]) => (
@@ -170,7 +177,6 @@ const CardContainer = styled.div`
 `;
 
 const TypeSection = styled.div`
-
   margin-bottom: 2rem;
   flex: 25%;
   h3 {
@@ -327,10 +333,6 @@ const CloseButton = styled.button`
   }
 `;
 
-const Filters = styled.div`
+const Filters = styled.div``;
 
-`;
-
-const Download = styled.div`
-  
-`;
+const Download = styled.div``;

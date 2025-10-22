@@ -6,10 +6,10 @@ interface Props {
   placeholder?: string;
 }
 
-const Input = ({ onChange, value, placeholder }: Props) => {
+const Input = ({ onChange, value, placeholder, type }: Props) => {
   return (
     <StyledInput
-      type="text"
+      type={type ? type : 'text'}
       onChange={onChange}
       value={value}
       placeholder={placeholder}
@@ -25,4 +25,5 @@ const StyledInput = styled.input`
   border-radius: 6px;
   font-size: 1rem;
   width: 100%;
+  color: #fff;
 `;

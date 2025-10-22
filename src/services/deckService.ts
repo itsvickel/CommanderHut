@@ -2,9 +2,6 @@ import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
 
-// deckService.ts
-import { Deck } from '../interfaces/deck';
-
 interface SelectedCard {
   id: string;
   quantity?: number;
@@ -22,18 +19,30 @@ interface SelectedCard {
  * @param {boolean} [is_public=false] - Optional. Whether the deck should be publicly visible. Defaults to false.
  * @returns {Promise<any>} A promise that resolves to the backend response containing the created deck data or an error.
  */
-export const postDeckList = async (deck: Deck): Promise<any> => {
-  try {
-    const response = await axios.post(API_ENDPOINT.DECK_BASE_URL, deck);
 
-    if (!response) {
-      throw new Error('Failed to create deck');
+export const postDeckList = async (payload: any) => {
+  try {
+    const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // Attach backend error details for UI to consume
+      const error = new Error(result.error || 'Failed to post deck');
+      (error as any).details = result;
+      throw error;
     }
 
-    return response;
+    return result;
   } catch (error) {
-    console.error('Error posting deck list:', error);
-    throw error;
+    console.error('Error posting deck:', error);
+    throw error; // Let caller handle the error object
   }
 };
 
@@ -79,7 +88,7 @@ export const fetchDeckListByName = async (): Promise<any> => {
  * fetching deck list by ID
  * @returns {Promise<any>} - The response from the backend (e.g., confirmation message).
  */
-export const fetchDeckListByID= async (id : number): Promise<any> => {
+export const fetchDeckListByID = async (id: number): Promise<any> => {
   try {
     const response = await axios.get(API_ENDPOINT.DECK_BY_ID + id);
 

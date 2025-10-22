@@ -2,7 +2,7 @@ import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
 
- 
+
 // /**
 //  * Fetches a card by its name or ID.
 //  * @param {string} query - The name or ID of the card.
@@ -154,7 +154,7 @@ export const fetchListOfRandomCards = async (limit: number): Promise<Card[]> => 
  */
 export const fetchCardByName = async (name: string): Promise<Card[]> => {
   try {
-    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_NAME+`${name}`);
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_NAME + `${name}`);
     if (!response.ok) {
       throw new Error("Failed to fetch the cards");
     }
@@ -174,7 +174,7 @@ export const fetchCardByName = async (name: string): Promise<Card[]> => {
  */
 export const fetchCardByID = async (ID: number): Promise<Card> => {
   try {
-    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_ID+`${ID}`);
+    const response = await fetch(API_ENDPOINT.CARD_QUERY_BY_ID + `${ID}`);
     if (!response.ok) {
       throw new Error("Failed to fetch the cards");
     }
@@ -204,5 +204,15 @@ export const fetchCardBulk = async (cards: string[]): Promise<Card[]> => {
   } catch (error) {
     console.error('Error fetching cards:', error);
     throw error; // Re-throwing the error for further handling
+  }
+};
+
+export const fetchAllCards = async () => {
+  try {
+    const res = await axios.get(`${API_ENDPOINT.CARD_ALL}/all`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    return [];
   }
 };

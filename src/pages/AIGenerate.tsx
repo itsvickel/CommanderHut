@@ -1,80 +1,162 @@
 import { useState } from "react";
-import { fetchCardByName, fetchCardsFromAI } from "../services/cardService";
-
-import styled from 'styled-components';
+import styled from "styled-components";
+import { fetchCardByName } from "../services/cardService";
+import { fetchMTGIdea } from "../services/aiService";
 
 const AIGenerate = () => {
-    const [query, setQuery] = useState("");
-    const [cards, setCards] = useState<object[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [cards, setCards] = useState<object[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [rawAIText, setRawAIText] = useState("");
 
-    const handleGenerateCards = async () => {
-        if (!query.trim()) return;
-
-        setLoading(true);
-        setError("");
-        setCards([]);
-
+  const handleGenerateCards = async () => {
+    if (!query.trim()) return;
+  
+    setLoading(true);
+    setError("");
+    setCards([]);
+    setRawAIText("");
+  
+    try {
+      const aiText = await fetchMTGIdea(query);
+      setRawAIText(aiText);
+      console.log("Raw AI Output:", aiText);
+  
+      // Extract card names by matching bold markdown style: **Card Name**
+      const cardNameMatches = [...aiText.matchAll(/\*\*(.+?)\*\*/g)];
+      const cardNames = cardNameMatches.map(match => match[1]);
+  
+      if (cardNames.length === 0) {
+        setError("No card names were found in the AI response.");
+        setLoading(false);
+        return;
+      }
+  
+      for (const name of cardNames) {
         try {
-            const generatedCards = await fetchCardsFromAI(query).then((res) => { console.log(res) });
-            if (generatedCards.length === 0) {
-                setError("No cards were generated. Try a different query.");
-            }
-
-            generatedCards.map((item) => {
-                fetchCardByName(item).then((res) => {
-                    // return res;
-                    setCards(cards => [...cards, res]);
-                });
-            });
-
-        } catch (err) {
-            setError("Failed to fetch cards. Please try again.");
-        } finally {
-            setLoading(false);
+          const res = await fetchCardByName(name);
+          if (res) {
+            setCards(cards => [...cards, res]);
+          }
+        } catch (cardErr) {
+          console.warn(`Could not fetch card: ${name}`, cardErr);
         }
-    };
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch cards. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
-    return (
-        <div className="p-6 max-w-2xl mx-auto bg-white shadow-md rounded-xl">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">AI-Generated MTG Cards</h2>
+  return (
+    <Container>
+      <h2>AI-Generated MTG Cards</h2>
 
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Enter your card query..."
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-            />
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Ask the AI to generate card ideas..."
+      />
 
-            <button
-                onClick={handleGenerateCards}
-                disabled={loading}
-                className={`w-full px-4 py-2 text-white bg-blue-600 rounded-md ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"}`}
-            >
-                {loading ? "Generating..." : "Generate Cards"}
-            </button>
+      <button onClick={handleGenerateCards} disabled={loading}>
+        {loading ? "Generating..." : "Generate Cards"}
+      </button>
 
-            {error && <p className="text-red-500 mt-2">{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-            {cards.length > 0 && (
-                <Column className="mt-4 border-t border-gray-200 pt-4">
-                    {cards.map((item, index) => {
-                        return <div key={index}>
-                            <img src={item?.image_uris?.normal} alt={item?.name} />
-                        </div>
-                    })}
-                </Column>
-            )}
-        </div>
-    );
+       
+        {rawAIText && (
+            <RawTextContainer>
+            {rawAIText}
+            </RawTextContainer> 
+        )}
+     
+
+      {cards.length > 0 && (
+        <Column>
+          {cards.map((item: any, index) => (
+            <Card key={index}>
+              <img src={item?.image_uris?.normal} alt={item?.name} />
+              <p>{item?.name}</p>
+            </Card>
+          ))}
+        </Column>
+      )}
+    </Container>
+  );
 };
 
 export default AIGenerate;
 
+const Container = styled.div`
+  max-width: auto;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 5px #ccc;
+  input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  button {
+    width: 100%;
+    padding: 0.7rem;
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    &:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+  }
+`;
+
 const Column = styled.div`
-    display: flex;
-    flex-direction: column;
-    overflow-y: scrol;;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: auto;
+`;
+
+const Card = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  img {
+    width: 80px;
+    border-radius: 8px;
+  }
+  p {
+    font-weight: 600;
+  }
+`;
+
+const RawTextContainer =styled.div`
+  height: 40vh;
+  width: 50vw;
+  font-weight: bold;
+  font-size: 1.5em;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  max-height: 40vh;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace;
+  color: #111827;
+  white-space: pre-wrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 `;

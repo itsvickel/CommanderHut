@@ -23,8 +23,6 @@ const DeckImport: React.FC<DeckImportProps> = ({ onImport }) => {
       try {
         const text = e.target?.result as string;
 
-        console.log('File content:', text); // Debug: log file content
-        
         // Ensure the file content is a string
         if (!text || typeof text !== 'string') {
           throw new Error('File content is not a valid string');
@@ -104,14 +102,14 @@ const DeckImport: React.FC<DeckImportProps> = ({ onImport }) => {
     <Container>
       <Header>
         <Title>
-          Upload your deck list{' '}
+          Upload your deck list
           <Information title="Accepted formats: JSON, XLSX, CSV, TXT">i</Information>
         </Title>
       </Header>
 
       {previewCards.length > 0 ? (
         <CardPreview>
- 
+
         </CardPreview>
       ) : (
         <UploadArea

@@ -13,25 +13,25 @@ interface Props {
     obj: {
         name: string;
         to: string;
-    }[], 
+    }[],
 }
 
 const Navbar = ({ obj }: Props) => {
     const dispatch = useDispatch();
     const isLogged = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-    const logout = () =>{
+    const logout = () => {
         logoutUser();
         dispatch(logoutAction());
     }
 
     return (
         <NavigationContainer>
-                {obj.map((item, index) => {
-                    return  <LinkItem key={index} to={item.to}>{item.name}</LinkItem> 
-                })}
+            {obj.map((item, index) => {
+                return <LinkItem key={index} to={item.to}>{item.name}</LinkItem>
+            })}
 
-                { isLogged ? <Button onClick={logout} name={'Logout'} />  : null}
+            {isLogged ? <Button onClick={logout} name={'Logout'} /> : null}
         </NavigationContainer>
     );
 };
@@ -39,14 +39,16 @@ const Navbar = ({ obj }: Props) => {
 export default Navbar;
 
 const NavigationContainer = styled.div`
+    position: fixed;
+    top: 0px;
     width: 100%;
-    top: 0;
-    position: absolute;
-    margin: 2%;
+    margin: 2% 0;
+    background: 
 `;
 
 const LinkItem = styled(Link)`
     margin: 3%;
     padding: 2%;
     color: ${colors.black};
+    text-decoration: none;
 `;
