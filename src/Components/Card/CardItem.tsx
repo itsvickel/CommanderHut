@@ -43,12 +43,12 @@ const CardItem: React.FC<CardProps> = ({ obj, key }) => {
               <Detail><strong>Released:</strong> {obj.released_at}</Detail>
               <Detail><strong>Layout:</strong> {obj.layout}</Detail>
               <LegalitiesTable>
-                  {Object.entries(obj.legalities).map(([format, status]) => (
-                    <LegalItem>
-                      <td>{format.toUpperCase()}</td>
-                      <td>{status === 'legal' ? '✅' : '❌'}</td>
-                    </LegalItem>
-                  ))}
+                {Object.entries(obj.legalities).map(([format, status]) => (
+                  <LegalItem>
+                    <td>{format.toUpperCase()}</td>
+                    <td>{status === 'legal' ? '✅' : '❌'}</td>
+                  </LegalItem>
+                ))}
               </LegalitiesTable>
             </CardDetails>
           </ModalContent>
@@ -64,7 +64,7 @@ export default CardItem;
 
 const CardWrapper = styled.div`
   padding: 1rem;
-  background-color: #faf7f2;
+  background-color: #ffff;
   border: 2px solid #e0dacf;
   border-radius: 12px;
   max-width: 340px;
@@ -80,7 +80,7 @@ const CardBox = styled.div<{ $modalOpen: boolean }>`
     !$modalOpen &&
     `
     &:hover {
-      transform: scale(1.05);
+      transform: scale(1.25);
     }
   `}
 `;

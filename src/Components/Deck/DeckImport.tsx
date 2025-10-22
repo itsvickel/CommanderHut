@@ -102,14 +102,14 @@ const DeckImport: React.FC<DeckImportProps> = ({ onImport }) => {
     <Container>
       <Header>
         <Title>
-          Upload your deck list{' '}
+          Upload your deck list
           <Information title="Accepted formats: JSON, XLSX, CSV, TXT">i</Information>
         </Title>
       </Header>
 
       {previewCards.length > 0 ? (
         <CardPreview>
- 
+
         </CardPreview>
       ) : (
         <UploadArea
