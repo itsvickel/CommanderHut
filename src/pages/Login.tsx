@@ -25,6 +25,7 @@ const Authentication = () => {
             if (res) {
                 navigate('/');
                 dispatch(login(res?.data?.user));
+                sessionStorage.setItem('user', JSON.stringify(res.data.user));
             }
         }).catch((err) => {
             console.log(err);

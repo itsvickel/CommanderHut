@@ -12,6 +12,7 @@ import DeckPage from './pages/DeckPage';
 import Sandbox from './pages/Sandbox';
 import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
+import ProfilePage from './pages/Profile/Profile';
 
 import colors from './styles/colors';
 import { login, logout } from './store/authSlice';
@@ -20,8 +21,21 @@ import Home from './pages/home';
 import useAuth from './hooks/useAuth';
 import DeckList from './Components/Deck/DeckList';
 
+
+
 const AppComponent = () => {
-  useAuth();
+
+  const savedUser = sessionStorage.getItem('user');
+  const dispatch = useDispatch();
+
+  useAuth();   
+
+  useEffect(() => { 
+    console.log("test", savedUser);
+  if (savedUser) {
+    dispatch(login(JSON.parse(savedUser)));
+  }
+  }, []);
 
   const isLogged = useSelector((state: RootState) => state.auth.isAuthenticated);
 
@@ -31,6 +45,7 @@ const AppComponent = () => {
     { name: 'Decks', to: '/decks' },
     { name: 'Sandbox', to: '/sandbox' },
     { name: 'AI Decksmith', to: '/decksmith' },
+    { name: 'Profile', to: '/profile' },
     { name: isLogged ? "" : 'Register', to: '/register' },
     { name: isLogged ? "" : 'Login', to: '/login' },
   ];
@@ -46,6 +61,7 @@ const AppComponent = () => {
         <Route path="/sandbox" element={<Sandbox />} />
         <Route path="/register" element={<RegisterUser />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </MainWrapper>
