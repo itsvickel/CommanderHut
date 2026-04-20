@@ -1,8 +1,3 @@
-jest.mock('../../../styles/colors.js', () => ({
-  __esModule: true,
-  default: { black: '#000000', lightGrey: '#848884' },
-}));
-
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ErrorState from '../ErrorState';

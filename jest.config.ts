@@ -7,7 +7,7 @@ export default {
     },
     setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
     transform: {
-        "^.+\\.tsx?$": [
+        "^.+\\.(js|jsx|ts|tsx)$": [
             "ts-jest",
             { tsconfig: "<rootDir>/tsconfig.app.json" },
         ],
