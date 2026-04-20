@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import styled from 'styled-components';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { ReactElement } from 'react';
 
 import AIGenerate from './pages/AIGenerate';
-import Title from './Components/UI_Components/Title';
 import Navbar from './Components/Navbar';
 import CardPage from './pages/CardPage';
 import DeckPage from './pages/DeckPage';
@@ -13,62 +10,42 @@ import Sandbox from './pages/Sandbox';
 import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
 import ProfilePage from './pages/Profile/Profile';
-
-import colors from './styles/colors';
-import { login, logout } from './store/authSlice';
-import { RootState } from '../src/store';
 import Home from './pages/home';
-import useAuth from './hooks/useAuth';
 import DeckList from './Components/Deck/DeckList';
 
+import colors from './styles/colors';
+import useAuth from './hooks/useAuth';
+import PageBoundary from './Components/UI_Components/PageBoundary';
+import RequireAuth from './Components/Auth/RequireAuth';
 
+const publicRoute = (element: ReactElement) => <PageBoundary>{element}</PageBoundary>;
+const protectedRoute = (element: ReactElement) => (
+  <PageBoundary>
+    <RequireAuth>{element}</RequireAuth>
+  </PageBoundary>
+);
 
 const AppComponent = () => {
-
-  const savedUser = sessionStorage.getItem('user');
-  const dispatch = useDispatch();
-
-  useAuth();   
-
-  useEffect(() => { 
-    console.log("test", savedUser);
-  if (savedUser) {
-    dispatch(login(JSON.parse(savedUser)));
-  }
-  }, []);
-
-  const isLogged = useSelector((state: RootState) => state.auth.isAuthenticated);
-
-
-  const navigationObj = [
-    { name: 'Cards', to: '/cards' },
-    { name: 'Decks', to: '/decks' },
-    { name: 'Sandbox', to: '/sandbox' },
-    { name: 'AI Decksmith', to: '/decksmith' },
-    { name: 'Profile', to: '/profile' },
-    { name: isLogged ? "" : 'Register', to: '/register' },
-    { name: isLogged ? "" : 'Login', to: '/login' },
-  ];
+  useAuth();
 
   return (
     <MainWrapper>
-      <Navbar obj={navigationObj} />
+      <Navbar />
       <Routes>
-        <Route path="/decksmith" element={<AIGenerate />} />
-        <Route path="/decks" element={<DeckPage />} />
-        <Route path="/decks/:id" element={<DeckList />} />
-        <Route path="/cards" element={<CardPage />} />
-        <Route path="/sandbox" element={<Sandbox />} />
-        <Route path="/register" element={<RegisterUser />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={publicRoute(<Home />)} />
+        <Route path="/cards" element={publicRoute(<CardPage />)} />
+        <Route path="/login" element={publicRoute(<Login />)} />
+        <Route path="/register" element={publicRoute(<RegisterUser />)} />
+        <Route path="/decks" element={protectedRoute(<DeckPage />)} />
+        <Route path="/decks/:id" element={protectedRoute(<DeckList />)} />
+        <Route path="/sandbox" element={protectedRoute(<Sandbox />)} />
+        <Route path="/decksmith" element={protectedRoute(<AIGenerate />)} />
+        <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
       </Routes>
     </MainWrapper>
   );
 };
 
-// Wrap with Router in root index.tsx (not here)
 export default function App() {
   return (
     <Router>
