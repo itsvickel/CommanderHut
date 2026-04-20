@@ -1,74 +1,75 @@
-import { useState, useEffect } from "react";
-
+import { useState } from 'react';
 import styled from 'styled-components';
-import { Label, Input, Button } from "../Components/UI_Components";
-import { loginUser } from "../services/userService";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { login } from '../store/authSlice';
+import { Input, Button } from '../Components/UI_Components';
+import { loginUser } from '../services/userService';
+import { authCheckSucceeded } from '../store/AuthSlice';
+
+const safeRedirect = (search: string): string => {
+  const params = new URLSearchParams(search);
+  const redirect = params.get('redirect');
+  if (redirect && redirect.startsWith('/')) return redirect;
+  return '/';
+};
 
 const Authentication = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
 
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
-    const dispatch = useDispatch();
+  const onLogin = () => {
+    loginUser({ email_address: email, password })
+      .then((res) => {
+        if (res && res.data?.user) {
+          dispatch(authCheckSucceeded(res.data.user));
+          navigate(safeRedirect(location.search), { replace: true });
+        }
+      })
+      .catch((err) => {
+        console.error('Login failed:', err);
+      });
+  };
 
-    const Login = () => {
-        loginUser({
-            email_address: email,
-            password: password,
-        }).then((res) => {
-            console.log(res);
-            if (res) {
-                navigate('/');
-                dispatch(login(res?.data?.user));
-                sessionStorage.setItem('user', JSON.stringify(res.data.user));
-            }
-        }).catch((err) => {
-            console.log(err);
-        })
-    }
+  return (
+    <Wrapper>
+      <Title>Login</Title>
+      <InputContainer>
+        <Input placeholder="Email Address" onChange={(e) => setEmail(e.target.value)} />
+      </InputContainer>
+      <InputContainer>
+        <Input placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+      </InputContainer>
 
-    return (
-        <Wrapper>
-            <Title>Login</Title>
-            <InputContainer>
-                <Input placeholder="Email Address" onChange={(e) => setEmail(e.target.value)} />
-            </InputContainer>
-            <InputContainer>
-                <Input placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-            </InputContainer>
-
-            <Button onClick={Login} name={'Login'} />
-        </Wrapper>
-    );
+      <Button onClick={onLogin} name="Login" />
+    </Wrapper>
+  );
 };
 
 export default Authentication;
 
 const Wrapper = styled.div`
-background: #fff;
-padding: 2rem;
-border-radius: 1rem;
-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-width: 100%;
-max-width: 400px;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
 `;
 
 const Title = styled.h2`
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
 `;
 
 const InputContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    overflow-y: scrol;
-    margin: 5% 2%;
+  display: flex;
+  flex-direction: column;
+  margin: 5% 2%;
 `;
-
