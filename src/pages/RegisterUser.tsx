@@ -7,13 +7,7 @@ import { postRegisterUser } from '../services/userService';
 import { postProfile } from '../services/profileService';
 import { Button, Input } from '../Components/UI_Components';
 import { authCheckSucceeded } from '../store/AuthSlice';
-
-const safeRedirect = (search: string): string => {
-  const params = new URLSearchParams(search);
-  const redirect = params.get('redirect');
-  if (redirect && redirect.startsWith('/')) return redirect;
-  return '/';
-};
+import { safeRedirect } from '../utils/safeRedirect';
 
 const RegisterUser = () => {
   const navigate = useNavigate();

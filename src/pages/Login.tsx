@@ -6,13 +6,7 @@ import { useDispatch } from 'react-redux';
 import { Input, Button } from '../Components/UI_Components';
 import { loginUser } from '../services/userService';
 import { authCheckSucceeded } from '../store/AuthSlice';
-
-const safeRedirect = (search: string): string => {
-  const params = new URLSearchParams(search);
-  const redirect = params.get('redirect');
-  if (redirect && redirect.startsWith('/')) return redirect;
-  return '/';
-};
+import { safeRedirect } from '../utils/safeRedirect';
 
 const Authentication = () => {
   const navigate = useNavigate();

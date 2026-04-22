@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom";
 import { TextEncoder, TextDecoder } from "util";
 
+// react-router-dom v7 references TextEncoder at module load; jsdom doesn't ship it.
 if (typeof globalThis.TextEncoder === "undefined") {
   globalThis.TextEncoder = TextEncoder;
 }

@@ -21,7 +21,7 @@ const RequireAuth = ({ children }: Props) => {
     return <Navigate to={`/login?redirect=${encodeURIComponent(target)}`} replace />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 export default RequireAuth;
