@@ -1,56 +1,52 @@
-import { useState } from "react";
-import styled from "styled-components";
-import { fetchCardByName } from "../services/cardService";
-import { fetchMTGIdea } from "../services/aiService";
+import { useState } from 'react';
+import styled from 'styled-components';
+import { fetchCardByName } from '../services/cardService';
+import { fetchMTGIdea } from '../services/aiService';
+import Spinner from '../Components/UI_Components/Spinner';
+import ErrorState from '../Components/UI_Components/ErrorState';
 
 const AIGenerate = () => {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [cards, setCards] = useState<object[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [rawAIText, setRawAIText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [rawAIText, setRawAIText] = useState('');
 
   const handleGenerateCards = async () => {
     if (!query.trim()) return;
-  
+
     setLoading(true);
-    setError("");
+    setError(null);
     setCards([]);
-    setRawAIText("");
-  
+    setRawAIText('');
+
     try {
       const aiText = await fetchMTGIdea(query);
       setRawAIText(aiText);
-      console.log("Raw AI Output:", aiText);
-  
-      // Extract card names by matching bold markdown style: **Card Name**
+
       const cardNameMatches = [...aiText.matchAll(/\*\*(.+?)\*\*/g)];
-      const cardNames = cardNameMatches.map(match => match[1]);
-  
+      const cardNames = cardNameMatches.map((m) => m[1]);
+
       if (cardNames.length === 0) {
-        setError("No card names were found in the AI response.");
-        setLoading(false);
+        setError('No card names were found in the AI response.');
         return;
       }
-  
+
       for (const name of cardNames) {
         try {
           const res = await fetchCardByName(name);
-          if (res) {
-            setCards(cards => [...cards, res]);
-          }
+          if (res) setCards((prev) => [...prev, res]);
         } catch (cardErr) {
           console.warn(`Could not fetch card: ${name}`, cardErr);
         }
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch cards. Please try again.");
+      setError('Failed to fetch cards. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <Container>
@@ -64,20 +60,17 @@ const AIGenerate = () => {
       />
 
       <button onClick={handleGenerateCards} disabled={loading}>
-        {loading ? "Generating..." : "Generate Cards"}
+        Generate Cards
       </button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {loading && <Spinner label="Generating cards" />}
+      {error && !loading && <ErrorState message={error} retry={handleGenerateCards} />}
 
-       
-        {rawAIText && (
-            <RawTextContainer>
-            {rawAIText}
-            </RawTextContainer> 
-        )}
-     
+      {!loading && rawAIText && (
+        <RawTextContainer>{rawAIText}</RawTextContainer>
+      )}
 
-      {cards.length > 0 && (
+      {!loading && cards.length > 0 && (
         <Column>
           {cards.map((item: any, index) => (
             <Card key={index}>
@@ -134,16 +127,11 @@ const Card = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  img {
-    width: 80px;
-    border-radius: 8px;
-  }
-  p {
-    font-weight: 600;
-  }
+  img { width: 80px; border-radius: 8px; }
+  p { font-weight: 600; }
 `;
 
-const RawTextContainer =styled.div`
+const RawTextContainer = styled.div`
   height: 40vh;
   width: 50vw;
   font-weight: bold;
