@@ -4,8 +4,18 @@ export interface Message {
   timestamp: number;
 }
 
+export interface CardEntry {
+  _id: string;
+  name: string;
+  quantity: number;
+  role: string;
+  image_uris: Record<string, string>;
+}
+
 export interface ParsedDeck {
+  generationId: string;
   commander: string;
-  cards: string[];   // the 99 non-commander cards
-  rawText: string;   // original AI response, kept for debugging
+  commanderImageUri: string;
+  cards: CardEntry[];
+  strategy: string;
 }

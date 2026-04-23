@@ -1,4 +1,3 @@
-// src/Components/Decksmith/DeckPanel.tsx
 import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
@@ -32,7 +31,7 @@ const DeckPanel = ({ deck }: Props) => {
     try {
       await postDeckList({
         commander: deck.commander,
-        cards: deck.cards,
+        cards: deck.cards.map(c => ({ id: c._id, quantity: c.quantity })),
         name: `${deck.commander} deck`,
         format: 'Commander',
       });
@@ -48,14 +47,24 @@ const DeckPanel = ({ deck }: Props) => {
   return (
     <Panel>
       <Header>
+        {deck.commanderImageUri && (
+          <CommanderImage src={deck.commanderImageUri} alt={deck.commander} />
+        )}
         <DeckTitle>{deck.commander}</DeckTitle>
         <Meta>Commander · {deck.cards.length + 1} cards</Meta>
       </Header>
 
       <CardList>
-        <CardRow><strong>{deck.commander}</strong> — Commander</CardRow>
-        {deck.cards.map((name, i) => (
-          <CardRow key={`${name}-${i}`}>{name}</CardRow>
+        <SectionLabel>Commander</SectionLabel>
+        <CardRow>
+          <CardName>{deck.commander}</CardName>
+        </CardRow>
+        <SectionLabel>Deck ({deck.cards.length})</SectionLabel>
+        {deck.cards.map((card, i) => (
+          <CardRow key={`${card._id}-${i}`}>
+            <CardName>{card.quantity > 1 ? `${card.quantity}x ` : ''}{card.name}</CardName>
+            {card.role && <CardRole>{card.role}</CardRole>}
+          </CardRow>
         ))}
       </CardList>
 
@@ -89,6 +98,13 @@ const Header = styled.div`
   flex-shrink: 0;
 `;
 
+const CommanderImage = styled.img`
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  display: block;
+`;
+
 const DeckTitle = styled.h3`
   margin: 0 0 0.25rem;
   font-size: 1rem;
@@ -111,11 +127,36 @@ const CardList = styled.div`
   gap: 0.1rem;
 `;
 
+const SectionLabel = styled.div`
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  margin: 0.5rem 0 0.25rem;
+`;
+
 const CardRow = styled.div`
-  font-size: 0.82rem;
-  color: #374151;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
   padding: 0.2rem 0;
   border-bottom: 1px solid #f9fafb;
+`;
+
+const CardName = styled.span`
+  font-size: 0.82rem;
+  color: #374151;
+  flex: 1;
+`;
+
+const CardRole = styled.span`
+  font-size: 0.7rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  flex-shrink: 0;
 `;
 
 const Footer = styled.div`
