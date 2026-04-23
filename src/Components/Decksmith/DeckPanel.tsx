@@ -16,7 +16,7 @@ type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
 const DeckPanel = ({ deck }: Props) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     return () => {
