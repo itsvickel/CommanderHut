@@ -39,7 +39,8 @@ const DeckPanel = ({ deck }: Props) => {
       setSaveStatus('success');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch {
+    } catch (err) {
+      console.error('Failed to save deck:', err);
       setSaveStatus('error');
     }
   };
