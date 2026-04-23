@@ -1,25 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { fetchAllDecks } from '../services/deckService';
 import { useNavigate } from 'react-router-dom';
+import { fetchAllDecks } from '../services/deckService';
+import Spinner from '../Components/UI_Components/Spinner';
+import ErrorState from '../Components/UI_Components/ErrorState';
 
 const DeckPage = () => {
   const [decks, setDecks] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAllDecks()
-      .then((res) => {
-        setDecks(res);
-      })
-      .catch((err) => {
-        console.error('Error fetching decks:', err);
-      });
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchAllDecks();
+      setDecks(res ?? []);
+    } catch (err) {
+      console.error('Error fetching decks:', err);
+      setError('Failed to load decks.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const navigateToDeckList = (id: string) => {
-    navigate(`/decks/${id}`); // assuming route is like /deck/:id
-  };
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const navigateToDeckList = (id: string) => navigate(`/decks/${id}`);
+
+  if (loading) return <Spinner label="Loading decks" />;
+  if (error) return <ErrorState message={error} retry={load} />;
 
   return (
     <PageWrapper>
@@ -53,8 +66,6 @@ const DeckPage = () => {
 
 export default DeckPage;
 
-// ========== Styled Components ==========
-
 const PageWrapper = styled.div`
   width: 90%;
   max-width: 960px;
@@ -85,6 +96,7 @@ const NoDecks = styled.p`
   color: #666;
   grid-column: 1 / -1;
 `;
+
 const DeckCard = styled.div`
   display: flex;
   flex-direction: column;
@@ -100,17 +112,15 @@ const DeckCard = styled.div`
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   }
 
-  &:hover img {
-    transform: scale(1.1);
-  }
+  &:hover img { transform: scale(1.1); }
 `;
 
 const DeckCommanderImage = styled.img`
-  width: 160px;          // smaller width
-  height: 224px;         // standard Magic card aspect ratio (approx 63mm x 88mm scaled)
+  width: 160px;
+  height: 224px;
   object-fit: cover;
   border-radius: 12px 12px 0 0;
-  margin: 0 auto 1rem;   // center horizontally and some bottom margin
+  margin: 0 auto 1rem;
   background-color: #f9f9f9;
   transition: transform 0.5s ease;
   will-change: transform;

@@ -31,6 +31,8 @@ const API_ENDPOINT = {
   DECK_BY_USER: import.meta.env.VITE_API_DECKS_USER,
   DECK_BY_ID: import.meta.env.VITE_API_DECKS_ID,
 
+  // ========== 🃏 Profile ==========
+  PROFILE_BASE_URL: import.meta.env.VITE_API_PROFILE_BASE_URL,
 
 };
 

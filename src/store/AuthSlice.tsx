@@ -1,18 +1,22 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface User {
+export interface User {
   id: string;
   username: string;
   email_address: string;
 }
 
-interface AuthState {
-  isAuthenticated: boolean;
+export type AuthStatus = 'idle' | 'checking' | 'authenticated' | 'unauthenticated';
+
+export interface AuthState {
+  status: AuthStatus;
   user: User | null;
 }
 
+const SESSION_STORAGE_KEY = 'user';
+
 const initialState: AuthState = {
-  isAuthenticated: false,
+  status: 'idle',
   user: null,
 };
 
@@ -20,16 +24,41 @@ const AuthSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login(state, action: PayloadAction<User>) {
-      state.isAuthenticated = true;
-      state.user = action.payload;
+    authCheckStarted(state) {
+      state.status = 'checking';
     },
-    logout(state) {
-      state.isAuthenticated = false;
+    authCheckSucceeded(state, action: PayloadAction<User>) {
+      state.status = 'authenticated';
+      state.user = action.payload;
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(action.payload));
+    },
+    authCheckFailed(state) {
+      state.status = 'unauthenticated';
       state.user = null;
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    },
+    logoutLocal(state) {
+      state.status = 'unauthenticated';
+      state.user = null;
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
     },
   },
 });
 
-export const { login, logout } = AuthSlice.actions;
+export const {
+  authCheckStarted,
+  authCheckSucceeded,
+  authCheckFailed,
+  logoutLocal,
+} = AuthSlice.actions;
+
+// Legacy compatibility — old code imports `login` / `logout`; map them to new actions.
+export const login = authCheckSucceeded;
+export const logout = logoutLocal;
+
+export const selectAuthStatus = (state: { auth: AuthState }): AuthStatus => state.auth.status;
+export const selectIsAuthenticated = (state: { auth: AuthState }): boolean =>
+  state.auth.status === 'authenticated';
+export const selectCurrentUser = (state: { auth: AuthState }): User | null => state.auth.user;
+
 export default AuthSlice.reducer;

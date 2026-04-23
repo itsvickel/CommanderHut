@@ -1,54 +1,76 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-
 import { useDispatch, useSelector } from 'react-redux';
-import { logout as logoutAction } from '../store/authSlice';
-import { RootState } from '../store';
 
-import colors from '../styles/colors.js';
+import {
+  logoutLocal,
+  selectAuthStatus,
+} from '../store/AuthSlice';
 import { logoutUser } from '../services/userService.js';
+import colors from '../styles/colors.js';
 import Button from './UI_Components/Button.js';
 
-interface Props {
-    obj: {
-        name: string;
-        to: string;
-    }[],
+interface NavLink {
+  name: string;
+  to: string;
 }
 
-const Navbar = ({ obj }: Props) => {
-    const dispatch = useDispatch();
-    const isLogged = useSelector((state: RootState) => state.auth.isAuthenticated);
+const PUBLIC_LINKS: NavLink[] = [
+  { name: 'Cards', to: '/cards' },
+];
 
-    const logout = () => {
-        logoutUser();
-        dispatch(logoutAction());
-    }
+const PROTECTED_LINKS: NavLink[] = [
+  { name: 'Decks', to: '/decks' },
+  { name: 'Sandbox', to: '/sandbox' },
+  { name: 'AI Decksmith', to: '/decksmith' },
+  { name: 'Profile', to: '/profile' },
+];
 
-    return (
-        <NavigationContainer>
-            {obj.map((item, index) => {
-                return <LinkItem key={index} to={item.to}>{item.name}</LinkItem>
-            })}
+const Navbar = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const status = useSelector(selectAuthStatus);
 
-            {isLogged ? <Button onClick={logout} name={'Logout'} /> : null}
-        </NavigationContainer>
-    );
+  const onLogout = () => {
+    dispatch(logoutLocal());
+    logoutUser().catch((err) => console.error('Logout request failed:', err));
+    navigate('/');
+  };
+
+  const links = status === 'authenticated'
+    ? [...PUBLIC_LINKS, ...PROTECTED_LINKS]
+    : PUBLIC_LINKS;
+
+  return (
+    <NavigationContainer>
+      {links.map((item) => (
+        <LinkItem key={item.to} to={item.to}>{item.name}</LinkItem>
+      ))}
+      {status === 'unauthenticated' && (
+        <>
+          <LinkItem to="/login">Login</LinkItem>
+          <LinkItem to="/register">Register</LinkItem>
+        </>
+      )}
+      {status === 'authenticated' && (
+        <Button onClick={onLogout} name="Logout" />
+      )}
+    </NavigationContainer>
+  );
 };
 
 export default Navbar;
 
 const NavigationContainer = styled.div`
-    position: fixed;
-    top: 0px;
-    width: 100%;
-    margin: 2% 0;
-    background: 
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  margin: 2% 0;
 `;
 
 const LinkItem = styled(Link)`
-    margin: 3%;
-    padding: 2%;
-    color: ${colors.black};
-    text-decoration: none;
+  margin: 3%;
+  padding: 2%;
+  color: ${colors.black};
+  text-decoration: none;
 `;
