@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 
 import styled from 'styled-components';
 import CardPage from './CardPage';
-import AIGenerate from './AIGenerate';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -16,9 +15,8 @@ const Home: React.FC = () => {
         <HomeContainer>
             <h1>Welcome to MTG AI</h1>
             {isLogged ? `Hello ${username}, how are you doing?` : null}
-            
+
             {/* <CardPage /> */}
-            {/* <AIGenerate /> */}
         </HomeContainer>
     );
 };
