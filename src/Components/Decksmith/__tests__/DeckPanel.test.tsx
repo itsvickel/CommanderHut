@@ -76,3 +76,37 @@ describe('DeckPanel hover tooltip', () => {
     expect(screen.queryByAltText('Sol Ring')).not.toBeInTheDocument();
   });
 });
+
+describe('DeckPanel deck page link', () => {
+  beforeEach(() => {
+    (postDeckList as jest.Mock).mockReset();
+  });
+
+  it('does not show View Deck Page link before saving', () => {
+    renderPanel(mockDeck);
+    expect(screen.queryByText('→ View Deck Page')).not.toBeInTheDocument();
+  });
+
+  it('shows View Deck Page link with correct href after successful save', async () => {
+    (postDeckList as jest.Mock).mockResolvedValue({ _id: 'deck-123' });
+    renderPanel(mockDeck);
+    fireEvent.click(screen.getByText('Save Deck'));
+    const link = await screen.findByRole('link', { name: '→ View Deck Page' });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/decks/deck-123');
+  });
+
+  it('does not show View Deck Page link when save returns no _id', async () => {
+    (postDeckList as jest.Mock).mockResolvedValue({});
+    renderPanel(mockDeck);
+    fireEvent.click(screen.getByText('Save Deck'));
+    await screen.findByText('Saved!');
+    expect(screen.queryByText('→ View Deck Page')).not.toBeInTheDocument();
+  });
+
+  it('shows Sign in note instead of Save button when unauthenticated', () => {
+    renderPanel(mockDeck, false);
+    expect(screen.getByText('Sign in to save your deck')).toBeInTheDocument();
+    expect(screen.queryByText('Save Deck')).not.toBeInTheDocument();
+  });
+});

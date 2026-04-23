@@ -22,7 +22,7 @@ const wrapper = (store: ReturnType<typeof buildStore>) =>
   ({ children }: { children: React.ReactNode }) =>
     React.createElement(Provider, { store }, children);
 
-const userFixture = { id: '1', username: 'ada', email_address: 'ada@example.com' };
+const userFixture = { id: '1', username: 'ada', email_address: 'ada@example.com', is_admin: false };
 
 describe('useAuth', () => {
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('useAuth', () => {
     sessionStorage.setItem('user', JSON.stringify(userFixture));
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => userFixture,
+      json: async () => ({ user: userFixture }),
     });
 
     const store = buildStore();
@@ -54,7 +54,7 @@ describe('useAuth', () => {
   it('dispatches authCheckStarted then authCheckSucceeded on cold load success', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => userFixture,
+      json: async () => ({ user: userFixture }),
     });
 
     const store = buildStore();
