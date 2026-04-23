@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   logoutLocal,
   selectAuthStatus,
+  selectIsAdmin,
 } from '../store/AuthSlice';
 import { logoutUser } from '../services/userService.js';
 import colors from '../styles/colors.js';
@@ -30,6 +31,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const status = useSelector(selectAuthStatus);
+  const isAdmin = useSelector(selectIsAdmin);
 
   const onLogout = () => {
     dispatch(logoutLocal());
@@ -51,6 +53,9 @@ const Navbar = () => {
           <LinkItem to="/login">Login</LinkItem>
           <LinkItem to="/register">Register</LinkItem>
         </>
+      )}
+      {status === 'authenticated' && isAdmin && (
+        <AdminLink to="/admin/masterprompt">Admin</AdminLink>
       )}
       {status === 'authenticated' && (
         <Button onClick={onLogout} name="Logout" />
@@ -75,5 +80,13 @@ const LinkItem = styled(Link)`
   margin: 3%;
   padding: 2%;
   color: ${colors.black};
+  text-decoration: none;
+`;
+
+const AdminLink = styled(Link)`
+  margin: 3%;
+  padding: 2%;
+  color: #6b7280;
+  font-size: 0.85rem;
   text-decoration: none;
 `;
