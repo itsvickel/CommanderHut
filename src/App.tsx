@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 
-import AIGenerate from './pages/AIGenerate';
+import Decksmith from './pages/Decksmith';
 import Title from './Components/UI_Components/Title';
 import Navbar from './Components/Navbar';
 import CardPage from './pages/CardPage';
@@ -30,7 +30,7 @@ const AppComponent = () => {
     { name: 'Cards', to: '/cards' },
     { name: 'Decks', to: '/decks' },
     { name: 'Sandbox', to: '/sandbox' },
-    { name: 'AI Decksmith', to: '/decksmith' },
+    { name: 'Decksmith', to: '/decksmith' },
     { name: isLogged ? "" : 'Register', to: '/register' },
     { name: isLogged ? "" : 'Login', to: '/login' },
   ];
@@ -39,7 +39,7 @@ const AppComponent = () => {
     <MainWrapper>
       <Navbar obj={navigationObj} />
       <Routes>
-        <Route path="/decksmith" element={<AIGenerate />} />
+        <Route path="/decksmith" element={<Decksmith />} />
         <Route path="/decks" element={<DeckPage />} />
         <Route path="/decks/:id" element={<DeckList />} />
         <Route path="/cards" element={<CardPage />} />
