@@ -15,6 +15,7 @@ interface HoveredCard {
   name: string;
   imageUri: string;
   top: number;
+  right: number;
 }
 
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
@@ -25,7 +26,6 @@ const DeckPanel = ({ deck }: Props) => {
   const [hoveredCard, setHoveredCard] = useState<HoveredCard | null>(null);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -40,12 +40,10 @@ const DeckPanel = ({ deck }: Props) => {
     name: string,
     imageUri: string
   ) => {
-    const panelRect = panelRef.current?.getBoundingClientRect();
     const rowRect = e.currentTarget.getBoundingClientRect();
-    const top = panelRect
-      ? rowRect.top - panelRect.top + rowRect.height / 2 - 100
-      : 0;
-    setHoveredCard({ name, imageUri, top: Math.max(0, top) });
+    const top = rowRect.top + rowRect.height / 2 - 100;
+    const right = window.innerWidth - rowRect.left + 8;
+    setHoveredCard({ name, imageUri, top: Math.max(0, top), right });
   };
 
   const handleSave = async () => {
@@ -69,9 +67,9 @@ const DeckPanel = ({ deck }: Props) => {
   };
 
   return (
-    <Panel ref={panelRef}>
+    <Panel>
       {hoveredCard && (
-        <CardTooltip style={{ top: hoveredCard.top }}>
+        <CardTooltip style={{ top: hoveredCard.top, right: hoveredCard.right }}>
           <img src={hoveredCard.imageUri} alt={hoveredCard.name} />
         </CardTooltip>
       )}
@@ -147,10 +145,8 @@ const Panel = styled.div`
 `;
 
 const CardTooltip = styled.div`
-  position: absolute;
-  right: 100%;
+  position: fixed;
   width: 200px;
-  padding-right: 8px;
   z-index: 200;
   pointer-events: none;
   img {
