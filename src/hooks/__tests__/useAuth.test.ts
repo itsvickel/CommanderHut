@@ -22,7 +22,7 @@ const wrapper = (store: ReturnType<typeof buildStore>) =>
   ({ children }: { children: React.ReactNode }) =>
     React.createElement(Provider, { store }, children);
 
-const userFixture = { id: '1', username: 'ada', email_address: 'ada@example.com' };
+const userFixture = { id: '1', username: 'ada', email_address: 'ada@example.com', is_admin: false };
 
 describe('useAuth', () => {
   beforeEach(() => {
@@ -34,27 +34,27 @@ describe('useAuth', () => {
     jest.resetAllMocks();
   });
 
-  it('hydrates from sessionStorage without dispatching authCheckStarted', async () => {
+  it('dispatches authCheckStarted then authCheckSucceeded (always waits for server)', async () => {
     sessionStorage.setItem('user', JSON.stringify(userFixture));
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => userFixture,
+      json: async () => ({ user: userFixture }),
     });
 
     const store = buildStore();
     const spy = jest.spyOn(store, 'dispatch');
     renderHook(() => useAuth(), { wrapper: wrapper(store) });
 
+    expect(spy).toHaveBeenCalledWith(authCheckStarted());
     await waitFor(() => {
       expect(spy).toHaveBeenCalledWith(authCheckSucceeded(userFixture));
     });
-    expect(spy).not.toHaveBeenCalledWith(authCheckStarted());
   });
 
   it('dispatches authCheckStarted then authCheckSucceeded on cold load success', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => userFixture,
+      json: async () => ({ user: userFixture }),
     });
 
     const store = buildStore();
@@ -83,7 +83,20 @@ describe('useAuth', () => {
     });
   });
 
-  it('dispatches authCheckFailed on network error', async () => {
+  it('falls back to cached user on network error', async () => {
+    sessionStorage.setItem('user', JSON.stringify(userFixture));
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('network'));
+
+    const store = buildStore();
+    const spy = jest.spyOn(store, 'dispatch');
+    renderHook(() => useAuth(), { wrapper: wrapper(store) });
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith(authCheckSucceeded(userFixture));
+    });
+  });
+
+  it('dispatches authCheckFailed on network error with no cache', async () => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('network'));
 
     const store = buildStore();

@@ -12,16 +12,23 @@ import RegisterUser from './pages/RegisterUser';
 import ProfilePage from './pages/Profile/Profile';
 import Home from './pages/home';
 import DeckList from './Components/Deck/DeckList';
+import AdminMasterPrompt from './pages/AdminMasterPrompt';
 
 import colors from './styles/colors';
 import useAuth from './hooks/useAuth';
 import PageBoundary from './Components/UI_Components/PageBoundary';
 import RequireAuth from './Components/Auth/RequireAuth';
+import RequireAdmin from './Components/Auth/RequireAdmin';
 
 const publicRoute = (element: ReactElement) => <PageBoundary>{element}</PageBoundary>;
 const protectedRoute = (element: ReactElement) => (
   <PageBoundary>
     <RequireAuth>{element}</RequireAuth>
+  </PageBoundary>
+);
+const adminRoute = (element: ReactElement) => (
+  <PageBoundary>
+    <RequireAdmin>{element}</RequireAdmin>
   </PageBoundary>
 );
 
@@ -41,6 +48,7 @@ const AppComponent = () => {
         <Route path="/sandbox" element={protectedRoute(<Sandbox />)} />
         <Route path="/decksmith" element={protectedRoute(<Decksmith />)} />
         <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
+        <Route path="/admin/masterprompt" element={adminRoute(<AdminMasterPrompt />)} />
       </Routes>
     </MainWrapper>
   );

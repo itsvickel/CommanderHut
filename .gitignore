@@ -33,6 +33,12 @@ coverage/
 
 # Optional: TypeScript cache
 *.tsbuildinfo
+
+# Superpowers brainstorming companion artifacts
+.superpowers/
+
+# Claude local settings
+.claude/
 .env
 .env
 .env

@@ -24,12 +24,7 @@ const useAuth = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const cached = readCachedUser();
-    if (cached) {
-      dispatch(authCheckSucceeded(cached));
-    } else {
-      dispatch(authCheckStarted());
-    }
+    dispatch(authCheckStarted());
 
     const controller = new AbortController();
 
@@ -43,15 +38,22 @@ const useAuth = () => {
           dispatch(authCheckFailed());
           return;
         }
-        const user = (await res.json()) as User;
+        const data = await res.json();
+        const user = data.user;
         dispatch(authCheckSucceeded({
           id: user.id,
           username: user.username,
           email_address: user.email_address,
+          is_admin: user.is_admin ?? false,
         }));
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') return;
-        dispatch(authCheckFailed());
+        const cached = readCachedUser();
+        if (cached) {
+          dispatch(authCheckSucceeded(cached));
+        } else {
+          dispatch(authCheckFailed());
+        }
       }
     })();
 
