@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { ParsedDeck } from '../../types/chat';
 import { postDeckList } from '../../services/deckService';
-import { RootState } from '../../store';
 import { selectIsAuthenticated } from '../../store/AuthSlice';
 import DeckPanelEmpty from './DeckPanelEmpty';
 
