@@ -1,5 +1,5 @@
 // src/Components/Decksmith/DeckPanel.tsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { ParsedDeck } from '../../types/chat';
@@ -16,6 +16,13 @@ type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
 const DeckPanel = ({ deck }: Props) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   if (!deck) return <DeckPanelEmpty />;
 
@@ -30,7 +37,8 @@ const DeckPanel = ({ deck }: Props) => {
         format: 'Commander',
       });
       setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('error');
     }
@@ -46,7 +54,7 @@ const DeckPanel = ({ deck }: Props) => {
       <CardList>
         <CardRow><strong>{deck.commander}</strong> — Commander</CardRow>
         {deck.cards.map((name, i) => (
-          <CardRow key={i}>{name}</CardRow>
+          <CardRow key={`${name}-${i}`}>{name}</CardRow>
         ))}
       </CardList>
 
