@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import styled from 'styled-components';
 import { ReactElement } from 'react';
 
-import AIGenerate from './pages/AIGenerate';
+import Decksmith from './pages/Decksmith';
 import Navbar from './Components/Navbar';
 import CardPage from './pages/CardPage';
 import DeckPage from './pages/DeckPage';
@@ -39,7 +39,7 @@ const AppComponent = () => {
         <Route path="/decks" element={protectedRoute(<DeckPage />)} />
         <Route path="/decks/:id" element={protectedRoute(<DeckList />)} />
         <Route path="/sandbox" element={protectedRoute(<Sandbox />)} />
-        <Route path="/decksmith" element={protectedRoute(<AIGenerate />)} />
+        <Route path="/decksmith" element={protectedRoute(<Decksmith />)} />
         <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
       </Routes>
     </MainWrapper>
