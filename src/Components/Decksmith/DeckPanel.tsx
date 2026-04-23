@@ -1,21 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { ParsedDeck } from '../../types/chat';
 import { postDeckList } from '../../services/deckService';
 import { RootState } from '../../store';
+import { selectIsAuthenticated } from '../../store/AuthSlice';
 import DeckPanelEmpty from './DeckPanelEmpty';
 
 interface Props {
   deck: ParsedDeck | null;
 }
 
+interface HoveredCard {
+  name: string;
+  imageUri: string;
+  top: number;
+}
+
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
 
 const DeckPanel = ({ deck }: Props) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const [savedDeckId, setSavedDeckId] = useState<string | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<HoveredCard | null>(null);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -25,16 +36,30 @@ const DeckPanel = ({ deck }: Props) => {
 
   if (!deck) return <DeckPanelEmpty />;
 
+  const handleHover = (
+    e: React.MouseEvent<HTMLDivElement>,
+    name: string,
+    imageUri: string
+  ) => {
+    const panelRect = panelRef.current?.getBoundingClientRect();
+    const rowRect = e.currentTarget.getBoundingClientRect();
+    const top = panelRect
+      ? rowRect.top - panelRect.top + rowRect.height / 2 - 100
+      : 0;
+    setHoveredCard({ name, imageUri, top: Math.max(0, top) });
+  };
+
   const handleSave = async () => {
     if (!isAuthenticated || saveStatus === 'saving') return;
     setSaveStatus('saving');
     try {
-      await postDeckList({
+      const result = await postDeckList({
         commander: deck.commander,
         cards: deck.cards.map(c => ({ id: c._id, quantity: c.quantity })),
         name: `${deck.commander} deck`,
         format: 'Commander',
       });
+      setSavedDeckId(result?._id ?? null);
       setSaveStatus('success');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
@@ -45,7 +70,13 @@ const DeckPanel = ({ deck }: Props) => {
   };
 
   return (
-    <Panel>
+    <Panel ref={panelRef}>
+      {hoveredCard && (
+        <CardTooltip style={{ top: hoveredCard.top }}>
+          <img src={hoveredCard.imageUri} alt={hoveredCard.name} />
+        </CardTooltip>
+      )}
+
       <Header>
         {deck.commanderImageUri && (
           <CommanderImage src={deck.commanderImageUri} alt={deck.commander} />
@@ -56,13 +87,29 @@ const DeckPanel = ({ deck }: Props) => {
 
       <CardList>
         <SectionLabel>Commander</SectionLabel>
-        <CardRow>
+        <CardRow
+          onMouseEnter={e => handleHover(e, deck.commander, deck.commanderImageUri)}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
           <CardName>{deck.commander}</CardName>
         </CardRow>
         <SectionLabel>Deck ({deck.cards.length})</SectionLabel>
         {deck.cards.map((card, i) => (
-          <CardRow key={`${card._id}-${i}`}>
-            <CardName>{card.quantity > 1 ? `${card.quantity}x ` : ''}{card.name}</CardName>
+          <CardRow
+            key={`${card._id}-${i}`}
+            onMouseEnter={e =>
+              handleHover(
+                e,
+                card.name,
+                card.image_uris.normal ?? card.image_uris.small ?? ''
+              )
+            }
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <CardName>
+              {card.quantity > 1 ? `${card.quantity}x ` : ''}
+              {card.name}
+            </CardName>
             {card.role && <CardRole>{card.role}</CardRole>}
           </CardRow>
         ))}
@@ -73,10 +120,17 @@ const DeckPanel = ({ deck }: Props) => {
           <AuthNote>Sign in to save your deck</AuthNote>
         ) : (
           <SaveButton onClick={handleSave} disabled={saveStatus === 'saving'}>
-            {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'success' ? 'Saved!' : 'Save Deck'}
+            {saveStatus === 'saving'
+              ? 'Saving…'
+              : saveStatus === 'success'
+              ? 'Saved!'
+              : 'Save Deck'}
           </SaveButton>
         )}
         {saveStatus === 'error' && <ErrorNote>Save failed — try again</ErrorNote>}
+        {savedDeckId && (
+          <ViewDeckLink to={`/decks/${savedDeckId}`}>→ View Deck Page</ViewDeckLink>
+        )}
       </Footer>
     </Panel>
   );
@@ -85,11 +139,27 @@ const DeckPanel = ({ deck }: Props) => {
 export default DeckPanel;
 
 const Panel = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   background: white;
   border-left: 1px solid #e5e7eb;
+`;
+
+const CardTooltip = styled.div`
+  position: absolute;
+  right: 100%;
+  width: 200px;
+  padding-right: 8px;
+  z-index: 200;
+  pointer-events: none;
+  img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    display: block;
+  }
 `;
 
 const Header = styled.div`
@@ -142,6 +212,7 @@ const CardRow = styled.div`
   gap: 0.5rem;
   padding: 0.2rem 0;
   border-bottom: 1px solid #f9fafb;
+  cursor: default;
 `;
 
 const CardName = styled.span`
@@ -178,7 +249,10 @@ const SaveButton = styled.button`
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  &:disabled { background: #93c5fd; cursor: not-allowed; }
+  &:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+  }
 `;
 
 const AuthNote = styled.p`
@@ -193,4 +267,16 @@ const ErrorNote = styled.p`
   color: #dc2626;
   text-align: center;
   margin: 0;
+`;
+
+const ViewDeckLink = styled(Link)`
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
