@@ -63,9 +63,12 @@ export default Navbar;
 
 const NavigationContainer = styled.div`
   position: fixed;
-  top: 0px;
+  top: 0;
   width: 100%;
-  margin: 2% 0;
+  z-index: 100;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 0;
 `;
 
 const LinkItem = styled(Link)`
