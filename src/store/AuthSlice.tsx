@@ -4,6 +4,7 @@ export interface User {
   id: string;
   username: string;
   email_address: string;
+  is_admin?: boolean;
 }
 
 export type AuthStatus = 'idle' | 'checking' | 'authenticated' | 'unauthenticated';
@@ -60,5 +61,7 @@ export const selectAuthStatus = (state: { auth: AuthState }): AuthStatus => stat
 export const selectIsAuthenticated = (state: { auth: AuthState }): boolean =>
   state.auth.status === 'authenticated';
 export const selectCurrentUser = (state: { auth: AuthState }): User | null => state.auth.user;
+export const selectIsAdmin = (state: { auth: AuthState }): boolean =>
+  state.auth.user?.is_admin ?? false;
 
 export default AuthSlice.reducer;
