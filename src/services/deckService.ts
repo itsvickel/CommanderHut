@@ -102,3 +102,22 @@ export const fetchDeckListByID = async (id: number): Promise<any> => {
     throw error;
   }
 };
+
+export const updateDeck = async (id: string, payload: Record<string, any>): Promise<any> => {
+  try {
+    const response = await axios.patch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating deck:', error);
+    throw error;
+  }
+};
+
+export const deleteDeck = async (id: string): Promise<void> => {
+  try {
+    await axios.delete(`${API_ENDPOINT.DECK_BASE_URL}/${id}`);
+  } catch (error) {
+    console.error('Error deleting deck:', error);
+    throw error;
+  }
+};
