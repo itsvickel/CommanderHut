@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { fetchCardByName, fetchListOfRandomCards } from '../services/cardService';
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
@@ -56,90 +55,38 @@ const CardPage = () => {
   if (error) return <ErrorState message={error} retry={loadRandom} />;
 
   return (
-    <Wrapper>
-      <SearchSection>
-        <Title>Magic: The Gathering Cards</Title>
-        <SearchBar>
-          <StyledInput
-            value={cardInput}
-            onChange={(e) => setCardInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search by card name..."
-          />
-          <StyledButton onClick={searchCardByName} name="Search" />
-        </SearchBar>
-      </SearchSection>
+    <div className="flex flex-col items-center p-8 bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl mb-8">
+        <h1 className="font-semibold text-center mb-6 text-gray-900 dark:text-gray-100" style={{ fontSize: '1.8rem' }}>
+          Magic: The Gathering Cards
+        </h1>
+        <div className="flex gap-2 items-center">
+          <div className="flex-1">
+            <Input
+              value={cardInput}
+              onChange={(e) => setCardInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search by card name..."
+            />
+          </div>
+          <Button onClick={searchCardByName} name="Search" />
+        </div>
+      </div>
 
-      <CardGrid>
+      <div
+        className="w-full grid gap-2 justify-items-center pb-8 overflow-y-auto"
+        style={{
+          maxWidth: '90vw',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          maxHeight: '60vh',
+        }}
+      >
         {searchedCards.length > 0
           ? displayListofCards(searchedCards)
           : displayListofCards(listOfCards)}
-      </CardGrid>
-    </Wrapper>
+      </div>
+    </div>
   );
 };
 
 export default CardPage;
-
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  background: #f9fafb;
-`;
-
-const Title = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 1.5rem;
-  text-align: center;
-`;
-
-const SearchSection = styled.div`
-  width: 100%;
-  max-width: 800px;
-  background: #fff;
-  padding: 1.5rem 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  margin-bottom: 2rem;
-`;
-
-const SearchBar = styled.div`
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-`;
-
-const StyledInput = styled(Input)`
-  flex: 1;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-`;
-
-const StyledButton = styled(Button)`
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  transition: all 0.2s ease-in-out;
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  }
-`;
-
-const CardGrid = styled.div`
-  width: 100%;
-  max-width: 90vw;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
-  justify-items: center;
-  padding-bottom: 2rem;
-  max-height: 60vh;
-  overflow-y: scroll;
-`;

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
-import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 
 import Button from '../Components/UI_Components/Button';
@@ -9,7 +8,7 @@ import { postDeckList } from '../services/deckService';
 import { fetchAllCards } from '../services/cardService';
 import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
-import colors from '../styles/colors.js'
+
 interface RootState {
   auth: {
     user: {
@@ -163,10 +162,12 @@ const Sandbox: React.FC = () => {
   }, 300);
 
   return (
-    <Wrapper>
-      <Title>Deck Builder</Title>
+    <div className="max-w-4xl mx-auto my-8 p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
+      <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-gray-100">
+        Deck Builder
+      </h1>
 
-      <MainContainer>
+      <div className="overflow-y-auto h-full">
         <CollapsibleSection
           title="Deck Name"
           value={deckName}
@@ -182,13 +183,17 @@ const Sandbox: React.FC = () => {
           isOpen={openSection === 'Format'}
           setOpenSection={setOpenSection}
         >
-          <Select value={format} onChange={handleFormatChange}>
+          <select
+            value={format}
+            onChange={handleFormatChange}
+            className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:border-blue-600 focus:outline-none"
+          >
             <option value="commander">Commander</option>
             <option value="standard">Standard</option>
             <option value="modern">Modern</option>
             <option value="legacy">Legacy</option>
             <option value="pauper">Pauper</option>
-          </Select>
+          </select>
         </CollapsibleSection>
 
         {format === 'commander' && (
@@ -206,26 +211,34 @@ const Sandbox: React.FC = () => {
               placeholder="Add your Commander"
             />
             {showSuggestions && commanderSuggestions.length > 0 && (
-              <SuggestionBox>
+              <ul className="list-none m-0 p-2 border border-gray-300 dark:border-gray-700 border-t-0 max-h-64 overflow-y-auto bg-white dark:bg-gray-800 absolute z-50 rounded-b-lg" style={{ width: 'calc(100% - 2rem)' }}>
                 {commanderSuggestions.map((card) => (
-                  <SuggestionItem
+                  <li
                     key={card.id}
                     onClick={() => {
                       setCommander(card.name);
                       setSelectedCommanderImage(card.image_uris?.normal || null);
                       setShowSuggestions(false);
                     }}
+                    className="px-3 py-2 cursor-pointer flex items-center hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    {card.image_uris?.small && <img src={card.image_uris.small} alt={card.name} />}
+                    {card.image_uris?.small && (
+                      <img src={card.image_uris.small} alt={card.name} className="w-10 mr-2 rounded" />
+                    )}
                     {card.name}
-                  </SuggestionItem>
+                  </li>
                 ))}
-              </SuggestionBox>
+              </ul>
             )}
             {selectedCommanderImage && (
-              <CommanderImageWrapper>
-                <img src={selectedCommanderImage} alt="Selected Commander" />
-              </CommanderImageWrapper>
+              <div className="mt-4 text-center">
+                <img
+                  src={selectedCommanderImage}
+                  alt="Selected Commander"
+                  className="max-w-xs rounded-2xl shadow-xl inline-block"
+                  style={{ maxWidth: '240px' }}
+                />
+              </div>
             )}
           </CollapsibleSection>
         )}
@@ -251,173 +264,33 @@ const Sandbox: React.FC = () => {
           />
 
           {errorCards.length > 0 && (
-            <ErrorBox>
-              <h4>❌ The following cards were not found:</h4>
+            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 p-4 my-4 rounded-lg text-red-800 dark:text-red-200">
+              <h4>The following cards were not found:</h4>
               <ul>
                 {errorCards.map((name) => (
                   <li key={name}>{name}</li>
                 ))}
               </ul>
-            </ErrorBox>
+            </div>
           )}
 
-          <TextArea
+          <textarea
             rows={10}
             value={deckCards}
             onChange={handleChange(setDeckCards)}
             placeholder="Enter cards one per line, e.g. '4 Lightning Bolt'"
+            className="w-full p-4 font-mono text-base border border-gray-300 dark:border-gray-700 rounded-lg mt-2 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-y"
           />
         </CollapsibleSection>
 
-      </MainContainer>
+      </div>
 
       <Button name="Create Deck" onClick={handleCreateDeck} disabled={!deckName.trim()} />
-    </Wrapper>
+    </div>
   );
 };
 
 export default Sandbox;
-
-/* ---------------- Styled Components ---------------- */
-const Wrapper = styled.div`
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-`;
-
-const Title = styled.h1`
-  font-size: 2.4rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-weight: 700;
-  color: #111827;
-  &:after {
-    content: "";
-    display: block;
-    height: 4px;
-    width: 80px;
-    margin: 0.5rem auto 0;
-    background: linear-gradient(to right, #2563eb, #9333ea);
-    border-radius: 2px;
-  }
-`;
-
-const CollapsibleWrapper = styled.div`
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const CollapsibleHeader = styled.div<{ open: boolean }>`
-  background: #f3f4f6;
-  padding: 0.8rem 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  &:hover {
-    background: #e5e7eb;
-  }
-`;
-
-const CollapsibleContent = styled.div<{ open: boolean }>`
-  max-height: ${({ open }) => (open ? '1000px' : '0')};
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-  padding: ${({ open }) => (open ? '1rem' : '0 1rem')};
-`;
-
-const Arrow = styled.span<{ open: boolean }>`
-  transform: rotate(${({ open }) => (open ? '90deg' : '0deg')});
-  transition: transform 0.3s ease;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  color: ${colors.black};
-  &:focus {
-    border-color: #2563eb;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-  }
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  padding: 1rem;
-  font-family: monospace;
-  font-size: 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  margin-top: 0.5rem;
-  background-color: #f9fafb;
-  resize: vertical;
-  color: ${colors.black};
-`;
-
-const SuggestionBox = styled.ul`
-  list-style: none;
-  margin: 0;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-top: none;
-  max-height: 250px;
-  overflow-y: auto;
-  background: white;
-  position: absolute;
-  width: calc(100% - 2rem);
-  z-index: 100;
-  border-radius: 0 0 8px 8px;
-`;
-
-const SuggestionItem = styled.li`
-  padding: 0.6rem 0.8rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  &:hover {
-    background-color: #f3f4f6;
-  }
-  img {
-    width: 40px;
-    margin-right: 10px;
-    border-radius: 4px;
-  }
-`;
-
-const ErrorBox = styled.div`
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 8px;
-  color: #991b1b;
-`;
-
-const CommanderImageWrapper = styled.div`
-  margin-top: 1rem;
-  text-align: center;
-  img {
-    max-width: 240px;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  }
-`;
-
-const MainContainer = styled.div`
-  scroll: auto;
-  max-height: 100%;
-`;
 
 /* ---------------- Collapsible Section Component ---------------- */
 interface CollapsibleSectionProps {
@@ -440,17 +313,37 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const handleToggle = () => setOpenSection(isOpen ? '' : title);
 
   return (
-    <CollapsibleWrapper>
-      <CollapsibleHeader open={isOpen} onClick={handleToggle}>
+    <div className="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div
+        className="bg-gray-100 dark:bg-gray-700 px-4 py-3 font-semibold cursor-pointer flex justify-between items-center hover:bg-gray-200 dark:hover:bg-gray-600"
+        onClick={handleToggle}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {title}
           {!isOpen && !hideSummary && value && (
             <span style={{ color: '#10b981', fontWeight: 500 }}>✔ {value}</span>
           )}
         </div>
-        <Arrow open={isOpen}>▶</Arrow>
-      </CollapsibleHeader>
-      <CollapsibleContent open={isOpen}>{children}</CollapsibleContent>
-    </CollapsibleWrapper>
+        <span
+          style={{
+            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.3s ease',
+            display: 'inline-block',
+          }}
+        >
+          ▶
+        </span>
+      </div>
+      <div
+        style={{
+          maxHeight: isOpen ? '1000px' : '0',
+          overflow: 'hidden',
+          transition: 'max-height 0.3s ease',
+          padding: isOpen ? '1rem' : '0 1rem',
+        }}
+      >
+        {children}
+      </div>
+    </div>
   );
 };

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
@@ -46,88 +45,47 @@ const RegisterUser = () => {
   };
 
   return (
-    <PageWrapper>
-      <Card>
-        <Title>Register</Title>
+    <div className="flex items-center justify-center min-h-screen w-screen">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm">
+        <h2 className="text-center text-2xl font-bold mb-6">Register</h2>
 
-        <InputContainer>
+        <div className="flex flex-col mb-4">
           <Input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
           />
-        </InputContainer>
+        </div>
 
-        <InputContainer>
+        <div className="flex flex-col mb-4">
           <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
           />
-        </InputContainer>
+        </div>
 
-        <InputContainer>
+        <div className="flex flex-col mb-4">
           <Input
             type="email"
             value={emailAddress}
             onChange={(e) => setEmailAddress(e.target.value)}
             placeholder="Your email"
           />
-        </InputContainer>
+        </div>
 
         <Button onClick={registerNewUser} name="Register" />
 
-        <FooterText>
-          Already have an account? <a href="/login">Login</a>
-        </FooterText>
-      </Card>
-    </PageWrapper>
+        <p className="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">
+          Already have an account?{' '}
+          <a href="/login" className="text-blue-500 no-underline font-medium hover:underline">
+            Login
+          </a>
+        </p>
+      </div>
+    </div>
   );
 };
 
 export default RegisterUser;
-
-const PageWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  width: 100vw;
-`;
-
-const Card = styled.div`
-  background: #fff;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h2`
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-`;
-
-const InputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-`;
-
-const FooterText = styled.p`
-  margin-top: 1rem;
-  font-size: 0.875rem;
-  text-align: center;
-  color: #6b7280;
-
-  a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-    &:hover { text-decoration: underline; }
-  }
-`;
