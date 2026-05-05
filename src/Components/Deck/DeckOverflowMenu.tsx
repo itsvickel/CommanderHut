@@ -9,6 +9,7 @@ interface Props {
 const DeckOverflowMenu = ({ onEdit, onDelete }: Props) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -16,8 +17,18 @@ const DeckOverflowMenu = ({ onEdit, onDelete }: Props) => {
         setOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -28,24 +39,33 @@ const DeckOverflowMenu = ({ onEdit, onDelete }: Props) => {
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpen(false);
+    triggerRef.current?.focus();
     onEdit();
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpen(false);
+    triggerRef.current?.focus();
     onDelete();
   };
 
   return (
     <Wrapper ref={ref}>
-      <TriggerButton onClick={handleToggle} aria-label="Deck options">
+      <TriggerButton
+        ref={triggerRef}
+        type="button"
+        onClick={handleToggle}
+        aria-label="Deck options"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
         •••
       </TriggerButton>
       {open && (
-        <Dropdown>
-          <DropdownItem onClick={handleEdit}>✏ Edit deck</DropdownItem>
-          <DropdownItem $danger onClick={handleDelete}>🗑 Delete</DropdownItem>
+        <Dropdown role="menu">
+          <DropdownItem role="menuitem" onClick={handleEdit}><span aria-hidden="true">✏</span> Edit deck</DropdownItem>
+          <DropdownItem role="menuitem" $danger onClick={handleDelete}><span aria-hidden="true">🗑</span> Delete</DropdownItem>
         </Dropdown>
       )}
     </Wrapper>
@@ -71,6 +91,7 @@ const TriggerButton = styled.button`
   letter-spacing: 2px;
   line-height: 1;
   &:hover { background: rgba(0, 0, 0, 0.15); }
+  &:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
 `;
 
 const Dropdown = styled.div`
