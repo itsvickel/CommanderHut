@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
 import { getMasterPrompt, updateMasterPrompt } from '../services/adminService';
 
 const OUTPUT_FORMAT =
@@ -14,6 +13,9 @@ const OUTPUT_FORMAT =
   'Do not invent card names.';
 
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
+
+const labelClass = 'text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400';
+const textareaClass = 'w-full box-border px-3 py-2 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-md resize-y text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
 const AdminMasterPrompt = () => {
   const [roleDescription, setRoleDescription] = useState('');
@@ -37,20 +39,14 @@ const AdminMasterPrompt = () => {
         setLoading(false);
       }
     })();
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
   const handleSave = async () => {
     if (saveStatus === 'saving') return;
     setSaveStatus('saving');
     try {
-      await updateMasterPrompt({
-        role_description: roleDescription,
-        domain_restrictions: domainRestrictions,
-        additional_rules: additionalRules,
-      });
+      await updateMasterPrompt({ role_description: roleDescription, domain_restrictions: domainRestrictions, additional_rules: additionalRules });
       setSaveStatus('success');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
@@ -59,176 +55,47 @@ const AdminMasterPrompt = () => {
     }
   };
 
-  if (loading) return <PageWrapper><LoadingMsg>Loading...</LoadingMsg></PageWrapper>;
-  if (fetchError) return <PageWrapper><ErrorMsg>{fetchError}</ErrorMsg></PageWrapper>;
+  if (loading) return <div className="p-8 text-gray-500 dark:text-gray-400 text-sm">Loading...</div>;
+  if (fetchError) return <div className="p-8 text-red-600 dark:text-red-400 text-sm">{fetchError}</div>;
 
   return (
-    <PageWrapper>
-      <PageTitle>Master Prompt Editor</PageTitle>
-      <PageSubtitle>Changes take effect within 60 seconds (cache TTL).</PageSubtitle>
+    <div className="max-w-3xl w-full mx-auto px-6 py-8 text-left">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Master Prompt Editor</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Changes take effect within 60 seconds (cache TTL).</p>
 
-      <Form>
-        <Section>
-          <Label>Role Description</Label>
-          <Textarea
-            rows={4}
-            value={roleDescription}
-            onChange={e => setRoleDescription(e.target.value)}
-          />
-        </Section>
-
-        <Section>
-          <Label>Domain Restrictions</Label>
-          <Textarea
-            rows={4}
-            value={domainRestrictions}
-            onChange={e => setDomainRestrictions(e.target.value)}
-          />
-        </Section>
-
-        <Section>
-          <Label>Additional Rules</Label>
-          <Textarea
-            rows={6}
-            value={additionalRules}
-            onChange={e => setAdditionalRules(e.target.value)}
-          />
-        </Section>
-
-        <Section>
-          <Label>
-            Output Format{' '}
-            <ReadOnlyBadge>(hardcoded — edit in source)</ReadOnlyBadge>
-          </Label>
-          <ReadOnlyTextarea rows={5} value={OUTPUT_FORMAT} readOnly />
-        </Section>
-
-        <Footer>
-          {saveStatus === 'error' && <ErrorMsg>Save failed — try again</ErrorMsg>}
-          {saveStatus === 'success' && <SuccessMsg>Saved!</SuccessMsg>}
-          <SaveButton onClick={handleSave} disabled={saveStatus === 'saving'}>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-1">
+          <label className={labelClass}>Role Description</label>
+          <textarea rows={4} value={roleDescription} onChange={e => setRoleDescription(e.target.value)} className={textareaClass} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className={labelClass}>Domain Restrictions</label>
+          <textarea rows={4} value={domainRestrictions} onChange={e => setDomainRestrictions(e.target.value)} className={textareaClass} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className={labelClass}>Additional Rules</label>
+          <textarea rows={6} value={additionalRules} onChange={e => setAdditionalRules(e.target.value)} className={textareaClass} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className={labelClass}>
+            Output Format <span className="font-normal normal-case text-xs text-gray-400">(hardcoded — edit in source)</span>
+          </label>
+          <textarea rows={5} value={OUTPUT_FORMAT} readOnly className={`${textareaClass} bg-gray-100 dark:bg-gray-900 text-gray-400 cursor-default focus:ring-0 focus:border-gray-300 dark:focus:border-gray-600`} />
+        </div>
+        <div className="flex items-center justify-end gap-4">
+          {saveStatus === 'error' && <p className="text-red-600 dark:text-red-400 text-sm m-0">Save failed — try again</p>}
+          {saveStatus === 'success' && <p className="text-green-600 dark:text-green-400 text-sm m-0">Saved!</p>}
+          <button
+            onClick={handleSave}
+            disabled={saveStatus === 'saving'}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg font-semibold text-sm transition-colors border-none cursor-pointer disabled:bg-blue-300 dark:disabled:bg-blue-800 disabled:cursor-not-allowed"
+          >
             {saveStatus === 'saving' ? 'Saving…' : 'Save Changes'}
-          </SaveButton>
-        </Footer>
-      </Form>
-    </PageWrapper>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default AdminMasterPrompt;
-
-const PageWrapper = styled.div`
-  max-width: 760px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  text-align: left;
-`;
-
-const PageTitle = styled.h2`
-  margin: 0 0 0.25rem;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #111827;
-`;
-
-const PageSubtitle = styled.p`
-  margin: 0 0 2rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-`;
-
-const Form = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-`;
-
-const Section = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-`;
-
-const Label = styled.label`
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #6b7280;
-  letter-spacing: 0.05em;
-`;
-
-const ReadOnlyBadge = styled.span`
-  font-weight: 400;
-  text-transform: none;
-  font-size: 0.75rem;
-  color: #9ca3af;
-`;
-
-const Textarea = styled.textarea`
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.875rem;
-  font-family: monospace;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  resize: vertical;
-  color: #374151;
-  background: #fff;
-  &:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-  }
-`;
-
-const ReadOnlyTextarea = styled(Textarea)`
-  background: #f3f4f6;
-  color: #9ca3af;
-  cursor: default;
-  border-color: #e5e7eb;
-  &:focus {
-    border-color: #e5e7eb;
-    box-shadow: none;
-  }
-`;
-
-const Footer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-`;
-
-const SaveButton = styled.button`
-  padding: 0.6rem 1.5rem;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  &:disabled {
-    background: #93c5fd;
-    cursor: not-allowed;
-  }
-`;
-
-const LoadingMsg = styled.p`
-  color: #6b7280;
-  font-size: 0.9rem;
-`;
-
-const ErrorMsg = styled.p`
-  color: #dc2626;
-  font-size: 0.875rem;
-  margin: 0;
-`;
-
-const SuccessMsg = styled.p`
-  color: #16a34a;
-  font-size: 0.875rem;
-  margin: 0;
-`;
