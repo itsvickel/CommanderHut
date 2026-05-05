@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import styled from 'styled-components';
 import { ReactElement } from 'react';
 
 import Decksmith from './pages/Decksmith';
@@ -14,7 +13,6 @@ import Home from './pages/home';
 import DeckList from './Components/Deck/DeckList';
 import AdminMasterPrompt from './pages/AdminMasterPrompt';
 
-import colors from './styles/colors';
 import useAuth from './hooks/useAuth';
 import PageBoundary from './Components/UI_Components/PageBoundary';
 import RequireAuth from './Components/Auth/RequireAuth';
@@ -36,7 +34,7 @@ const AppComponent = () => {
   useAuth();
 
   return (
-    <MainWrapper>
+    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
       <Navbar />
       <Routes>
         <Route path="/" element={publicRoute(<Home />)} />
@@ -50,7 +48,7 @@ const AppComponent = () => {
         <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
         <Route path="/admin/masterprompt" element={adminRoute(<AdminMasterPrompt />)} />
       </Routes>
-    </MainWrapper>
+    </div>
   );
 };
 
@@ -61,17 +59,3 @@ export default function App() {
     </Router>
   );
 }
-
-const MainWrapper = styled.div`
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-  margin: 0;
-
-  background: linear-gradient(135deg, #f9fafb, #e5e7eb);
-  color: ${colors.black};
-`;
