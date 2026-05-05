@@ -1,6 +1,5 @@
 // src/Components/Chat/MessageList.tsx
 import { useEffect, useRef } from 'react';
-import styled from 'styled-components';
 import { Message } from '../../types/chat';
 import MessageBubble from './MessageBubble';
 
@@ -17,33 +16,18 @@ const MessageList = ({ messages, loading }: Props) => {
   }, [messages, loading]);
 
   return (
-    <List>
+    <div className="flex-1 overflow-y-auto flex flex-col gap-2 p-4">
       {messages.map(msg => (
         <MessageBubble key={msg.timestamp} message={msg} />
       ))}
-      {loading && <ThinkingBubble>Thinking…</ThinkingBubble>}
+      {loading && (
+        <div className="self-start bg-[#f3f4f6] text-[#6b7280] rounded-[12px_12px_12px_2px] px-[0.9rem] py-[0.6rem] text-[0.9rem] italic">
+          Thinking…
+        </div>
+      )}
       <div ref={bottomRef} />
-    </List>
+    </div>
   );
 };
 
 export default MessageList;
-
-const List = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
-`;
-
-const ThinkingBubble = styled.div`
-  align-self: flex-start;
-  background: #f3f4f6;
-  color: #6b7280;
-  border-radius: 12px 12px 12px 2px;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.9rem;
-  font-style: italic;
-`;

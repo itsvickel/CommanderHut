@@ -1,5 +1,3 @@
- 
-
 interface DeckCard {
   name: string;
   collector_number: string;
@@ -11,25 +9,18 @@ interface DeckExportProps {
 
 const DeckExport: React.FC<DeckExportProps> = ({ onExport }) => {
 
-  // To PDF, cvs, text, mtgarena, 
+  // To PDF, cvs, text, mtgarena,
 
   const handleExport = (exportType: File) => {
 
     return File;
   }
- 
+
   return (
-    <Container>
-      
-    </Container>
+    <div className="flex flex-col p-8">
+
+    </div>
   );
 };
 
 export default DeckExport;
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-`;
- 

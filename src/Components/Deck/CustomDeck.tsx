@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import API_ENDPOINT from '../../Constants/api';
 import SearchBar from '../UI_Components/Searchbar';
 import { fetchCardByName } from '../../services/cardService';
@@ -55,7 +54,7 @@ const CustomDeck = ({ card, key }: DeckProps) => {
     // commander,
     // tags,
     // is_public,
-    // cards: selectedCards, 
+    // cards: selectedCards,
     console.log(selectedCards);
     postDeckList(user.email_address, deckName, DeckFormat.Commander, selectedCards).then((res) => {
       if (res) {
@@ -70,56 +69,32 @@ const CustomDeck = ({ card, key }: DeckProps) => {
   const groupedCards = groupCardsByType(selectedCards);
 
   return (
-    <Wrapper key={key}>
+    <div key={key}>
       <SearchBar fetchOptions={fetchOptions} onSelect={handleSelect} />
 
       <Input placeholder='deck name' onChange={(e) => setDeckName(e.target.value)} />
-      <StackContainer>
+      <div className="mt-8">
         {groupedCards ?
           <>
             {Object.entries(groupedCards).map(([type, cards]) => (
-              <CardGroup key={type}>
-                <GroupTitle>{type}</GroupTitle>
-                <CardList>
+              <div key={type} className="mb-8">
+                <h3 className="font-bold mb-2">{type}</h3>
+                <div className="flex flex-wrap gap-2.5">
                   {cards.map((card, i) => (
                     <CardItem
                       key={i}
                       obj={card}
                     />
                   ))}
-                </CardList>
-              </CardGroup>
+                </div>
+              </div>
             ))}
             <Button onClick={SubmitDeck} name={'Submit'} />
           </>
           : null}
-      </StackContainer>
-    </Wrapper>
+      </div>
+    </div>
   );
 };
 
 export default CustomDeck;
-
-const Wrapper = styled.div`
- 
-`;
-
-const StackContainer = styled.div`
-  margin-top: 2rem;
-`;
-
-const CardGroup = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const GroupTitle = styled.h3`
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-`;
-
-const CardList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-`;
-

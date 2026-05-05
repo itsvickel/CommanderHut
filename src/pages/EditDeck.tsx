@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import styled from 'styled-components';
 import axios from 'axios';
 import { fetchDeckListByID, updateDeck } from '../services/deckService';
 import { selectCurrentUser } from '../store/AuthSlice';
@@ -194,308 +193,194 @@ const EditDeck = () => {
     }
   };
 
-  if (pageLoading) return <StatusMsg>Loading deck…</StatusMsg>;
-  if (pageError) return <StatusMsg $error>{pageError}</StatusMsg>;
+  if (pageLoading) return <p className="text-center mt-16 text-[#888]">Loading deck…</p>;
+  if (pageError) return <p className="text-center mt-16 text-[#c0392b]">{pageError}</p>;
 
   return (
-    <PageWrapper>
-      <BackLink onClick={() => navigate('/decks')}>← Back to My Decks</BackLink>
-      <PageTitle>Edit Deck</PageTitle>
+    <div className="w-[90%] max-w-[900px] mx-auto my-8 p-4">
+      <span
+        onClick={() => navigate('/decks')}
+        className="text-[0.9rem] text-[#888] cursor-pointer hover:text-[#333]"
+      >
+        ← Back to My Decks
+      </span>
+      <h2 className="text-[2rem] font-bold my-2 mb-6 text-[#111]">Edit Deck</h2>
 
-      <TwoColumn>
+      <div className="grid grid-cols-1 gap-8 items-start sm:grid-cols-[1fr_1.2fr]">
         {/* ── LEFT: metadata ── */}
-        <MetaColumn>
-          <SectionLabel>Deck Info</SectionLabel>
+        <div className="flex flex-col gap-3">
+          <div className="text-[0.72rem] uppercase tracking-widest text-[#999] mb-0.5">Deck Info</div>
 
-          <Field>
-            <Label>Deck Name</Label>
-            <Input value={deckName} onChange={e => setDeckName(e.target.value)} />
-          </Field>
+          <div className="flex flex-col gap-1">
+            <label className="text-[0.85rem] text-[#555] font-medium">Deck Name</label>
+            <input
+              value={deckName}
+              onChange={e => setDeckName(e.target.value)}
+              className="px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] focus:outline-none focus:border-[#888] focus:bg-white"
+            />
+          </div>
 
-          <Field>
-            <Label>Format</Label>
-            <Select value={format} onChange={e => setFormat(e.target.value)}>
+          <div className="flex flex-col gap-1">
+            <label className="text-[0.85rem] text-[#555] font-medium">Format</label>
+            <select
+              value={format}
+              onChange={e => setFormat(e.target.value)}
+              className="px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] cursor-pointer"
+            >
               {FORMATS.map(f => <option key={f} value={f}>{f}</option>)}
-            </Select>
-          </Field>
+            </select>
+          </div>
 
-          <Field style={{ position: 'relative' }}>
-            <Label>Commander</Label>
-            <Input
+          <div className="flex flex-col gap-1 relative">
+            <label className="text-[0.85rem] text-[#555] font-medium">Commander</label>
+            <input
               value={commander}
               onChange={e => { setCommander(e.target.value); setShowCommanderSuggestions(true); }}
               onBlur={() => setTimeout(() => setShowCommanderSuggestions(false), 150)}
+              className="px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] focus:outline-none focus:border-[#888] focus:bg-white"
             />
             {showCommanderSuggestions && commanderSuggestions.length > 0 && (
-              <Suggestions>
+              <div className="absolute top-full left-0 right-0 bg-white border border-[#ddd] rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.1)] z-50 max-h-[200px] overflow-y-auto">
                 {commanderSuggestions.map(s => (
-                  <SuggestionItem key={s} onMouseDown={() => selectCommander(s)}>{s}</SuggestionItem>
+                  <div
+                    key={s}
+                    onMouseDown={() => selectCommander(s)}
+                    className="px-3 py-2 text-[0.88rem] cursor-pointer flex justify-between items-center hover:bg-[#f0f0f0]"
+                  >
+                    {s}
+                  </div>
                 ))}
-              </Suggestions>
+              </div>
             )}
-          </Field>
+          </div>
 
-          <Field>
-            <Label>Tags <Hint>(comma-separated)</Hint></Label>
-            <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="e.g. aggro, budget" />
-          </Field>
+          <div className="flex flex-col gap-1">
+            <label className="text-[0.85rem] text-[#555] font-medium">
+              Tags <span className="font-normal text-[#aaa] text-[0.8rem]">(comma-separated)</span>
+            </label>
+            <input
+              value={tags}
+              onChange={e => setTags(e.target.value)}
+              placeholder="e.g. aggro, budget"
+              className="px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] focus:outline-none focus:border-[#888] focus:bg-white"
+            />
+          </div>
 
-          <ToggleRow>
-            <ToggleSwitch
-              $on={isPublic}
+          <div className="flex items-center gap-2.5 mt-1">
+            <div
               onClick={() => setIsPublic(p => !p)}
               aria-label="Toggle public"
-            />
-            <ToggleLabel>
+              className={`w-10 h-[22px] rounded-full relative cursor-pointer flex-shrink-0 transition-colors duration-200 ${isPublic ? 'bg-[#27ae60]' : 'bg-[#ccc]'}`}
+            >
+              <span
+                className={`absolute w-4 h-4 rounded-full bg-white top-[3px] transition-all duration-200 ${isPublic ? 'left-[21px]' : 'left-[3px]'}`}
+              />
+            </div>
+            <div className="text-[0.88rem] text-[#444] flex flex-col">
               {isPublic ? 'Public deck' : 'Private deck'}
-              <ToggleHint>{isPublic ? 'Visible to everyone' : 'Only visible to you'}</ToggleHint>
-            </ToggleLabel>
-          </ToggleRow>
+              <span className="text-[0.75rem] text-[#aaa]">{isPublic ? 'Visible to everyone' : 'Only visible to you'}</span>
+            </div>
+          </div>
 
           {commanderImage && (
-            <CommanderArt src={commanderImage} alt={`${commander} art`} />
+            <img
+              src={commanderImage}
+              alt={`${commander} art`}
+              className="w-full rounded-lg object-cover max-h-[120px] mt-1"
+            />
           )}
-        </MetaColumn>
+        </div>
 
         {/* ── RIGHT: card list ── */}
-        <CardColumn>
-          <CardHeader>
-            <SectionLabel>Card List</SectionLabel>
-            <CardCount>{cards.reduce((sum, c) => sum + c.quantity, 0)} cards</CardCount>
-          </CardHeader>
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between items-baseline">
+            <div className="text-[0.72rem] uppercase tracking-widest text-[#999] mb-0.5">Card List</div>
+            <span className="text-[0.8rem] text-[#999]">{cards.reduce((sum, c) => sum + c.quantity, 0)} cards</span>
+          </div>
 
-          <Field style={{ position: 'relative' }}>
-            <SearchInput
+          <div className="flex flex-col gap-1 relative">
+            <input
               value={cardQuery}
               onChange={e => setCardQuery(e.target.value)}
               placeholder="🔍 Search and add a card…"
+              className="w-full box-border px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] focus:outline-none focus:border-[#888] focus:bg-white"
             />
-            {cardSearchLoading && <SearchHint>Searching…</SearchHint>}
+            {cardSearchLoading && <div className="text-[0.78rem] text-[#aaa] mt-0.5">Searching…</div>}
             {cardResults.length > 0 && (
-              <Suggestions>
+              <div className="absolute top-full left-0 right-0 bg-white border border-[#ddd] rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.1)] z-50 max-h-[200px] overflow-y-auto">
                 {cardResults.map(name => {
                   const alreadyIn = cards.some(c => c.name.toLowerCase() === name.toLowerCase());
                   return (
-                    <SuggestionItem key={name} onMouseDown={() => addCard(name)}>
-                      {name} {alreadyIn && <AlreadyIn>✓ in deck</AlreadyIn>}
-                    </SuggestionItem>
+                    <div
+                      key={name}
+                      onMouseDown={() => addCard(name)}
+                      className="px-3 py-2 text-[0.88rem] cursor-pointer flex justify-between items-center hover:bg-[#f0f0f0]"
+                    >
+                      {name} {alreadyIn && <span className="text-[0.75rem] text-[#27ae60]">✓ in deck</span>}
+                    </div>
                   );
                 })}
-              </Suggestions>
+              </div>
             )}
-          </Field>
+          </div>
 
-          <CardList>
+          <div className="flex flex-col gap-1 max-h-[340px] overflow-y-auto">
             {cards.map(c => (
-              <CardRow key={c.name}>
-                <CardName>{c.name}</CardName>
-                <CardControls>
-                  <QtyBtn onClick={() => changeQuantity(c.name, -1)} disabled={c.quantity <= 1}>−</QtyBtn>
-                  <Qty>{c.quantity}</Qty>
-                  <QtyBtn onClick={() => changeQuantity(c.name, 1)}>+</QtyBtn>
-                  <RemoveBtn onClick={() => removeCard(c.name)}>✕</RemoveBtn>
-                </CardControls>
-              </CardRow>
+              <div
+                key={c.name}
+                className="flex justify-between items-center px-2 py-1.5 bg-[#f9f9f9] rounded-md hover:bg-[#f0f0f0]"
+              >
+                <span className="text-[0.88rem] text-[#222] flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{c.name}</span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => changeQuantity(c.name, -1)}
+                    disabled={c.quantity <= 1}
+                    className="w-[22px] h-[22px] border border-[#ddd] rounded bg-white cursor-pointer text-[0.9rem] leading-none hover:not-disabled:bg-[#e8e8e8] disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    −
+                  </button>
+                  <span className="min-w-[18px] text-center text-[0.88rem]">{c.quantity}</span>
+                  <button
+                    onClick={() => changeQuantity(c.name, 1)}
+                    className="w-[22px] h-[22px] border border-[#ddd] rounded bg-white cursor-pointer text-[0.9rem] leading-none hover:bg-[#e8e8e8]"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => removeCard(c.name)}
+                    className="bg-none border-none cursor-pointer text-[#c0392b] text-[0.9rem] px-1 py-0.5 hover:text-[#a93226]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
             ))}
-          </CardList>
-        </CardColumn>
-      </TwoColumn>
+          </div>
+        </div>
+      </div>
 
-      {saveError && <ErrorMsg>{saveError}</ErrorMsg>}
+      {saveError && <p className="text-[#c0392b] text-[0.88rem] mt-2">{saveError}</p>}
       {notFoundCards.length > 0 && (
-        <ErrorMsg>Cards not found in database: {notFoundCards.join(', ')}</ErrorMsg>
+        <p className="text-[#c0392b] text-[0.88rem] mt-2">Cards not found in database: {notFoundCards.join(', ')}</p>
       )}
 
-      <Footer>
-        <CancelBtn onClick={() => navigate('/decks')}>Cancel</CancelBtn>
-        <SaveBtn onClick={handleSave} disabled={saving}>
+      <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-[#eee]">
+        <button
+          onClick={() => navigate('/decks')}
+          className="px-5 py-[9px] border border-[#ccc] rounded-lg bg-white cursor-pointer text-[0.9rem] hover:bg-[#f5f5f5]"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-5 py-[9px] border-none rounded-lg bg-[#222] text-white cursor-pointer text-[0.9rem] font-semibold hover:not-disabled:bg-[#444] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {saving ? 'Saving…' : 'Save Changes'}
-        </SaveBtn>
-      </Footer>
-    </PageWrapper>
+        </button>
+      </div>
+    </div>
   );
 };
 
 export default EditDeck;
-
-/* ── Styled components ── */
-
-const PageWrapper = styled.div`
-  width: 90%;
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-`;
-
-const BackLink = styled.span`
-  font-size: 0.9rem;
-  color: #888;
-  cursor: pointer;
-  &:hover { color: #333; }
-`;
-
-const PageTitle = styled.h2`
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0.5rem 0 1.5rem;
-  color: #111;
-`;
-
-const TwoColumn = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 2rem;
-  align-items: start;
-  @media (max-width: 640px) { grid-template-columns: 1fr; }
-`;
-
-const MetaColumn = styled.div`display: flex; flex-direction: column; gap: 0.75rem;`;
-const CardColumn = styled.div`display: flex; flex-direction: column; gap: 0.75rem;`;
-
-const SectionLabel = styled.div`
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #999;
-  margin-bottom: 2px;
-`;
-
-const Field = styled.div`display: flex; flex-direction: column; gap: 4px;`;
-
-const Label = styled.label`font-size: 0.85rem; color: #555; font-weight: 500;`;
-const Hint = styled.span`font-weight: 400; color: #aaa; font-size: 0.8rem;`;
-
-const Input = styled.input`
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: #fafafa;
-  &:focus { outline: none; border-color: #888; background: #fff; }
-`;
-
-const Select = styled.select`
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: #fafafa;
-  cursor: pointer;
-`;
-
-const Suggestions = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0; right: 0;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  z-index: 50;
-  max-height: 200px;
-  overflow-y: auto;
-`;
-
-const SuggestionItem = styled.div`
-  padding: 8px 12px;
-  font-size: 0.88rem;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  &:hover { background: #f0f0f0; }
-`;
-
-const AlreadyIn = styled.span`font-size: 0.75rem; color: #27ae60;`;
-
-const ToggleRow = styled.div`display: flex; align-items: center; gap: 10px; margin-top: 4px;`;
-
-const ToggleSwitch = styled.div<{ $on: boolean }>`
-  width: 40px; height: 22px;
-  border-radius: 11px;
-  background: ${({ $on }) => ($on ? '#27ae60' : '#ccc')};
-  position: relative; cursor: pointer; flex-shrink: 0;
-  transition: background 0.2s;
-  &::after {
-    content: '';
-    position: absolute;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #fff;
-    top: 3px;
-    left: ${({ $on }) => ($on ? '21px' : '3px')};
-    transition: left 0.2s;
-  }
-`;
-
-const ToggleLabel = styled.div`font-size: 0.88rem; color: #444; display: flex; flex-direction: column;`;
-const ToggleHint = styled.span`font-size: 0.75rem; color: #aaa;`;
-
-const CommanderArt = styled.img`
-  width: 100%; border-radius: 8px; object-fit: cover;
-  max-height: 120px; margin-top: 4px;
-`;
-
-const CardHeader = styled.div`display: flex; justify-content: space-between; align-items: baseline;`;
-const CardCount = styled.span`font-size: 0.8rem; color: #999;`;
-
-const SearchInput = styled(Input)`width: 100%; box-sizing: border-box;`;
-const SearchHint = styled.div`font-size: 0.78rem; color: #aaa; margin-top: 2px;`;
-
-const CardList = styled.div`
-  display: flex; flex-direction: column; gap: 4px;
-  max-height: 340px; overflow-y: auto;
-`;
-
-const CardRow = styled.div`
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 6px 8px;
-  background: #f9f9f9; border-radius: 5px;
-  &:hover { background: #f0f0f0; }
-`;
-
-const CardName = styled.span`font-size: 0.88rem; color: #222; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;`;
-
-const CardControls = styled.div`display: flex; align-items: center; gap: 4px; flex-shrink: 0;`;
-
-const QtyBtn = styled.button`
-  width: 22px; height: 22px; border: 1px solid #ddd; border-radius: 4px;
-  background: #fff; cursor: pointer; font-size: 0.9rem; line-height: 1;
-  &:hover:not(:disabled) { background: #e8e8e8; }
-  &:disabled { opacity: 0.3; cursor: not-allowed; }
-`;
-
-const Qty = styled.span`min-width: 18px; text-align: center; font-size: 0.88rem;`;
-
-const RemoveBtn = styled.button`
-  background: none; border: none; cursor: pointer;
-  color: #c0392b; font-size: 0.9rem; padding: 2px 4px;
-  &:hover { color: #a93226; }
-`;
-
-const StatusMsg = styled.p<{ $error?: boolean }>`
-  text-align: center; margin-top: 4rem;
-  color: ${({ $error }) => ($error ? '#c0392b' : '#888')};
-`;
-
-const ErrorMsg = styled.p`color: #c0392b; font-size: 0.88rem; margin-top: 8px;`;
-
-const Footer = styled.div`
-  display: flex; justify-content: flex-end; gap: 10px;
-  margin-top: 24px; padding-top: 16px;
-  border-top: 1px solid #eee;
-`;
-
-const CancelBtn = styled.button`
-  padding: 9px 20px; border: 1px solid #ccc; border-radius: 7px;
-  background: #fff; cursor: pointer; font-size: 0.9rem;
-  &:hover { background: #f5f5f5; }
-`;
-
-const SaveBtn = styled.button`
-  padding: 9px 20px; border: none; border-radius: 7px;
-  background: #222; color: #fff; cursor: pointer;
-  font-size: 0.9rem; font-weight: 600;
-  &:hover:not(:disabled) { background: #444; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-`;
