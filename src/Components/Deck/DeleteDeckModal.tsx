@@ -14,14 +14,19 @@ const DeleteDeckModal = ({ isOpen, deckName, isDeleting, deleteError, onConfirm,
 
   return (
     <Overlay onClick={onCancel}>
-      <Modal onClick={e => e.stopPropagation()}>
-        <Title>Delete "{deckName}"?</Title>
+      <Modal
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-deck-modal-title"
+        onClick={e => e.stopPropagation()}
+      >
+        <Title id="delete-deck-modal-title">Delete "{deckName}"?</Title>
         <Body>This action cannot be undone.</Body>
         {isDeleting && <StatusText>Deleting...</StatusText>}
         {deleteError && <ErrorText>{deleteError}</ErrorText>}
         <Actions>
-          <CancelBtn onClick={onCancel} disabled={isDeleting}>Cancel</CancelBtn>
-          <DeleteBtn onClick={onConfirm} disabled={isDeleting}>Delete</DeleteBtn>
+          <CancelBtn type="button" autoFocus onClick={onCancel} disabled={isDeleting}>Cancel</CancelBtn>
+          <DeleteBtn type="button" onClick={onConfirm} disabled={isDeleting}>Delete</DeleteBtn>
         </Actions>
       </Modal>
     </Overlay>
