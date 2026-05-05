@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import API_ENDPOINT from '../../Constants/api';
+import { useState } from 'react';
 import SearchBar from '../UI_Components/Searchbar';
 import { fetchCardByName } from '../../services/cardService';
 import { Card } from '../../Interface/index';
@@ -12,6 +11,10 @@ import DeckFormat from '../../Constants/constant';
 import { postDeckList } from '../../services/deckService';
 
 import { useSelector } from 'react-redux';
+
+interface RootState {
+  auth: { user: any };
+}
 
 // Define the Props interface outside the component for better readability
 interface DeckProps {
@@ -56,7 +59,7 @@ const CustomDeck = ({ card, key }: DeckProps) => {
     // is_public,
     // cards: selectedCards,
     console.log(selectedCards);
-    postDeckList(user.email_address, deckName, DeckFormat.Commander, selectedCards).then((res) => {
+    postDeckList({ email_address: user?.email_address, deck_name: deckName, format: DeckFormat.Commander, cards: selectedCards }).then((res) => {
       if (res) {
         setSelectedCards([]);
         setDeckName('');

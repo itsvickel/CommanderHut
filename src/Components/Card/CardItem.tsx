@@ -3,7 +3,7 @@ import CardModal from './CardModal';
 import type { Card } from "../../Interface/index";
 
 interface CardProps {
-  key?: number;
+  key?: string | number;
   obj: Card;
 }
 
@@ -47,7 +47,7 @@ const CardItem: React.FC<CardProps> = ({ obj, key }) => {
               <div className="mb-2 leading-relaxed text-[0.95rem]"><strong>Released:</strong> {obj.released_at}</div>
               <div className="mb-2 leading-relaxed text-[0.95rem]"><strong>Layout:</strong> {obj.layout}</div>
               <table className="flex flex-wrap">
-                {Object.entries(obj.legalities).map(([format, status]) => (
+                {Object.entries(obj.legalities ?? {}).map(([format, status]) => (
                   <div key={format} className="w-1/2">
                     <td>{format.toUpperCase()}</td>
                     <td>{status === 'legal' ? '✅' : '❌'}</td>

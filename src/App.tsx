@@ -10,9 +10,9 @@ import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
 import ProfilePage from './pages/Profile/Profile';
 import Home from './pages/home';
-import DeckList from './Components/Deck/DeckList';
 import EditDeck from './pages/EditDeck';
 import AdminMasterPrompt from './pages/AdminMasterPrompt';
+import DeckDetailPage from './pages/DeckDetailPage';
 
 import useAuth from './hooks/useAuth';
 import PageBoundary from './Components/UI_Components/PageBoundary';
@@ -43,9 +43,9 @@ const AppComponent = () => {
         <Route path="/login" element={publicRoute(<Login />)} />
         <Route path="/register" element={publicRoute(<RegisterUser />)} />
         <Route path="/decks" element={protectedRoute(<DeckPage />)} />
-        <Route path="/decks/:id" element={protectedRoute(<DeckList />)} />
+        <Route path="/decks/:id" element={publicRoute(<DeckDetailPage />)} />
         <Route path="/decks/:id/edit" element={protectedRoute(<EditDeck />)} />
-        <Route path="/sandbox" element={protectedRoute(<Sandbox />)} />
+        <Route path="/sandbox" element={publicRoute(<Sandbox />)} />
         <Route path="/decksmith" element={protectedRoute(<Decksmith />)} />
         <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
         <Route path="/admin/masterprompt" element={adminRoute(<AdminMasterPrompt />)} />

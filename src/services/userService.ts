@@ -1,4 +1,3 @@
-import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
 
@@ -25,9 +24,9 @@ export const postRegisterUser = async (user: UserPayload): Promise<RegisteredUse
 
     return response.data as RegisteredUserResponse;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching cards from AI:", error.response?.data || error);
-    return [];
+    throw error;
   }
 };
 
@@ -45,7 +44,7 @@ export const loginUser = async (credentials: { email_address: string; password: 
 
 export const logoutUser = async (): Promise<any> => {
   try {
-    const response = await axios.post(API_ENDPOINT.LOGOUT, {
+    await axios.post(API_ENDPOINT.LOGOUT, {
       withCredentials: true,
     });
   } catch (error: any) {

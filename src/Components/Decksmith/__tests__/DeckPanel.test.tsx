@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter } from 'react-router-dom';
-import authReducer from '../../../store/AuthSlice';
+import authReducer, { AuthStatus } from '../../../store/AuthSlice';
 import DeckPanel from '../DeckPanel';
 import { postDeckList } from '../../../services/deckService';
 import { ParsedDeck } from '../../../types/chat';
@@ -39,7 +39,7 @@ const buildStore = (authenticated: boolean) =>
     reducer: { auth: authReducer },
     preloadedState: {
       auth: {
-        status: authenticated ? 'authenticated' : 'unauthenticated',
+        status: (authenticated ? 'authenticated' : 'unauthenticated') as AuthStatus,
         user: authenticated
           ? { id: '1', username: 'test', email_address: 'test@test.com' }
           : null,

@@ -13,7 +13,7 @@ interface DeckProps {
 }
 
 // Update the component to accept props of type CardProps
-const Deck: React.FC<DeckProps> = ({ obj, key }) => {
+const Deck: React.FC<DeckProps> = ({ key }) => {
   return (
     <div key={key}>
 

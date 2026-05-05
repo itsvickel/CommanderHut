@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Modal } from '../UI_Components';
 
@@ -8,11 +8,14 @@ interface DeckProps {
 }
 
 // Update the component to accept props of type CardProps
-const DeckCreation: React.FC<DeckProps> = ({ obj, key }) => {
+const DeckCreation: React.FC<DeckProps> = () => {
+  const [open, setOpen] = useState(false);
+  const [text] = useState('');
+
   return (
-    <div key={key}>
+    <div>
         <Modal
-        isOpen={true}
+        isOpen={open}
         onClose={() => setOpen(false)}
         onSubmit={() => {
           console.log("Submitted:", text);

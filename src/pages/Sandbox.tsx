@@ -1,11 +1,10 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { useSelector } from 'react-redux';
 
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
 import DeckImport from '../Components/Deck/DeckImport';
 import { postDeckList } from '../services/deckService';
-import { fetchAllCards } from '../services/cardService';
 import { Deck } from '../Interface/deck';
 import { Debounce } from '../utils/helpers';
 
@@ -42,16 +41,9 @@ const Sandbox: React.FC = () => {
   const [commanderSuggestions, setCommanderSuggestions] = useState<CommanderCard[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCommanderImage, setSelectedCommanderImage] = useState<string | null>(null);
-  const [allCards, setAllCards] = useState<any[]>([]);
   const [errorCards, setErrorCards] = useState<string[]>([]);
 
   const [openSection, setOpenSection] = useState<string>('Deck Name'); // only one open at a time
-
-  useEffect(() => {
-    fetchAllCards()
-      .then((all) => setAllCards(all))
-      .catch((err) => console.log(err));
-  }, []);
 
   const handleCreateDeck = async () => {
     const parsedCards = deckCards
@@ -206,7 +198,7 @@ const Sandbox: React.FC = () => {
             <Input
               value={commander}
               onChange={handleCommanderChange}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onBlur={() => { setTimeout(() => setShowSuggestions(false), 150); }}
               onFocus={() => commander && setShowSuggestions(true)}
               placeholder="Add your Commander"
             />

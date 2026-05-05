@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchDeckListByID } from '../../services/deckService';
 
@@ -14,6 +14,11 @@ interface Card {
 
 interface CardWithCount extends Card {
   count: number;
+}
+
+interface DeckCard {
+  card: Card;
+  quantity: number;
 }
 
 const DeckList = () => {
@@ -48,7 +53,7 @@ const DeckList = () => {
 
   useEffect(() => {
     if (id) {
-      fetchDeckListByID(id)
+      fetchDeckListByID(id as any)
         .then((deckData) => {
           console.log(deckData);
           setDeck(deckData);
@@ -62,7 +67,7 @@ const DeckList = () => {
   }, [id]);
 
 
-  const filterCards = (cards: Card[]) => {
+  const filterCards = (cards: CardWithCount[]) => {
     return cards.filter((card) => {
       const cardName = card.name || "";
       const filterName = filter.name || "";
