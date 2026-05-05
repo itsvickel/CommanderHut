@@ -7,6 +7,16 @@ interface SelectedCard {
   quantity?: number;
 }
 
+export interface DeckUpdatePayload {
+  deck_name?: string;
+  format?: string;
+  commander?: string;
+  commander_image?: string;
+  tags?: string[];
+  is_public?: boolean;
+  deck_list?: Array<{ card: string; quantity: number }>;
+}
+
 /**
  * Submits a new deck to the backend.
  *
@@ -99,6 +109,38 @@ export const fetchDeckListByID = async (id: number): Promise<any> => {
     return response.data;
   } catch (error) {
     console.error("Error fetching deck list:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing deck by ID.
+ *
+ * @param {string} id - The ID of the deck to update.
+ * @param {DeckUpdatePayload} payload - The fields to update on the deck.
+ * @returns {Promise<DeckUpdatePayload>} A promise that resolves to the updated deck data returned by the backend.
+ */
+export const updateDeck = async (id: string, payload: DeckUpdatePayload): Promise<DeckUpdatePayload> => {
+  try {
+    const response = await axios.patch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating deck:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a deck by ID.
+ *
+ * @param {string} id - The ID of the deck to delete.
+ * @returns {Promise<void>} A promise that resolves when the deck has been successfully deleted.
+ */
+export const deleteDeck = async (id: string): Promise<void> => {
+  try {
+    await axios.delete(`${API_ENDPOINT.DECK_BASE_URL}/${id}`);
+  } catch (error) {
+    console.error('Error deleting deck:', error);
     throw error;
   }
 };

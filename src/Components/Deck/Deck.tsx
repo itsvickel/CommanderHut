@@ -1,7 +1,5 @@
 import React from 'react';
 
-import styled from 'styled-components';
-
 // Define the Props interface outside the component for better readability
 interface DeckProps {
   key?: number,
@@ -18,11 +16,9 @@ interface DeckProps {
 const Deck: React.FC<DeckProps> = ({ obj, key }) => {
   return (
     <div key={key}>
-      
+
     </div>
   );
 };
 
 export default Deck;
-
- 

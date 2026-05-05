@@ -1,18 +1,11 @@
-
-import styled from 'styled-components';
-
 interface Props {
-  name: string; 
+  name: string;
 }
 
 const Label = ({ name }: Props) => {
   return (
-    <LabelContainer>{name}</LabelContainer>
+    <div className="text-[2em]">{name}</div>
   );
 };
 
 export default Label;
-
-const LabelContainer = styled.div`
-    font-size: 2em;
-`;

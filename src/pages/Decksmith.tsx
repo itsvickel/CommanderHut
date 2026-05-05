@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import styled from 'styled-components';
 import { Message, ParsedDeck } from '../types/chat';
 import { buildPromptFromMessages } from '../utils/chatPrompt';
 import { fetchMTGIdea } from '../services/aiService';
@@ -44,44 +43,16 @@ const Decksmith = () => {
   };
 
   return (
-    <Layout>
-      <ChatColumn>
+    <div className="fixed top-0 left-0 right-0 bottom-0 flex overflow-hidden bg-gray-50 dark:bg-gray-900" style={{ paddingTop: '72px' }}>
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
         <MessageList messages={messages} loading={loading} />
         <ChatInput onSend={handleSend} disabled={loading} />
-      </ChatColumn>
-      <DeckColumn>
+      </div>
+      <div className="overflow-hidden flex-shrink-0" style={{ width: '360px' }}>
         <DeckPanel deck={currentDeck} />
-      </DeckColumn>
-    </Layout>
+      </div>
+    </div>
   );
 };
 
 export default Decksmith;
-
-const Layout = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  padding-top: 72px;
-  overflow: hidden;
-  background: #f9fafb;
-`;
-
-const ChatColumn = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
-`;
-
-const DeckColumn = styled.div`
-  width: 360px;
-  flex-shrink: 0;
-  overflow: hidden;
-`;

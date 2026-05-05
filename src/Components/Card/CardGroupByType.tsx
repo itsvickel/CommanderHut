@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { Card } from '../interfaces/card';
 import CardItem from './CardItem';
 
@@ -34,67 +33,34 @@ const CardGroupByCustom: React.FC<Props> = () => {
   };
 
   return (
-    <Wrapper>
-      <GroupControl>
+    <div className="mt-8">
+      <div className="mb-4 flex gap-4">
         <input
           value={newGroupName}
           onChange={(e) => setNewGroupName(e.target.value)}
           placeholder="Add custom group (e.g. Finisher)"
+          className="p-2 text-base flex-1"
         />
-        <button onClick={addCustomGroup}>Add Group</button>
-      </GroupControl>
+        <button
+          onClick={addCustomGroup}
+          className="px-4 py-2 bg-[#0077cc] text-white border-none rounded cursor-pointer hover:bg-[#005fa3]"
+        >
+          Add Group
+        </button>
+      </div>
 
       {Object.entries(customGroups).map(([groupName, cards]) => (
-        <Group key={groupName}>
+        <div key={groupName} className="mb-8">
           <h2>{groupName}</h2>
-          <CardGrid>
+          <div className="flex flex-wrap gap-4">
             {cards.map((card) => (
               <CardItem obj={card} key={card.name + groupName} />
             ))}
-          </CardGrid>
-        </Group>
+          </div>
+        </div>
       ))}
-    </Wrapper>
+    </div>
   );
 };
 
 export default CardGroupByCustom;
-
-const Wrapper = styled.div`
-  margin-top: 2rem;
-`;
-
-const GroupControl = styled.div`
-  margin-bottom: 1rem;
-  display: flex;
-  gap: 1rem;
-
-  input {
-    padding: 0.5rem;
-    font-size: 1rem;
-    flex: 1;
-  }
-
-  button {
-    padding: 0.5rem 1rem;
-    background-color: #0077cc;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-
-    &:hover {
-      background-color: #005fa3;
-    }
-  }
-`;
-
-const Group = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const CardGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-`;

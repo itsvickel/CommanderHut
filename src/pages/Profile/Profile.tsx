@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import styled from 'styled-components';
 import { getProfile } from "../../services/profileService";
 
 interface Profile {
@@ -40,21 +39,22 @@ const ProfilePage = () => {
     }, [profileData]);
 
     return (
-        <ProfileWrapper>
-            <Card>
-                <ProfileContainer>
-                    <Title>Avatar</Title>
-                    <Title>username</Title>
-                    <Title>{profileData?.bio}</Title>
-                    <Title>{profileData?.last_active_at
-                        ? new Date(profileData.last_active_at).toLocaleString()
-                        : "No activity yet"}
-                    </Title>
-                </ProfileContainer>
+        <div className="flex items-center justify-center min-h-screen w-screen">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm">
+                <div>
+                    <h2 className="text-center text-2xl font-bold mb-6">Avatar</h2>
+                    <h2 className="text-center text-2xl font-bold mb-6">username</h2>
+                    <h2 className="text-center text-2xl font-bold mb-6">{profileData?.bio}</h2>
+                    <h2 className="text-center text-2xl font-bold mb-6">
+                        {profileData?.last_active_at
+                            ? new Date(profileData.last_active_at).toLocaleString()
+                            : "No activity yet"}
+                    </h2>
+                </div>
 
-                <ImportDeck>
+                <div>
 
-                </ImportDeck>
+                </div>
 
                 {/* <span>
                     - recently viewed
@@ -64,62 +64,12 @@ const ProfilePage = () => {
                     - Decks list create a deck if none
                 </span> */}
 
-                <ListOfUserDecks>
+                <div>
 
-                </ListOfUserDecks>
-            </Card>
-        </ProfileWrapper>
+                </div>
+            </div>
+        </div>
     );
 };
 
 export default ProfilePage;
-
-// ---------------- Styled Components ----------------
-
-const ProfileWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    width: 100vw;
-`;
-
-const ProfileContainer = styled.div``;
-
-const ImportDeck = styled.div``;
-
-const Card = styled.div`
-    background: #fff;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    width: 100%;
-    max-width: 400px;
-`;
-
-const Title = styled.h2`
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-`;
-
-const FooterText = styled.p`
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    text-align: center;
-    color: #6b7280;
-
-    a {
-        color: #3b82f6;
-        text-decoration: none;
-        font-weight: 500;
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-`;
-
-const ListOfUserDecks = styled.div`
-
-`;

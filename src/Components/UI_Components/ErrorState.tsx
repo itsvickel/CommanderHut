@@ -1,54 +1,23 @@
-import styled from 'styled-components';
-import colors from '../../styles/colors.js';
-
 interface Props {
   message: string;
   retry?: () => void;
 }
 
 const ErrorState = ({ message, retry }: Props) => (
-  <Wrapper role="alert">
-    <Heading>Something went wrong</Heading>
-    <Message>{message}</Message>
-    {retry && <RetryButton onClick={retry}>Try again</RetryButton>}
-  </Wrapper>
+  <div role="alert" className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 m-0">
+      Something went wrong
+    </h2>
+    <p className="text-gray-500 dark:text-gray-400 m-0">{message}</p>
+    {retry && (
+      <button
+        onClick={retry}
+        className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-md text-sm cursor-pointer transition-colors border-none"
+      >
+        Try again
+      </button>
+    )}
+  </div>
 );
 
 export default ErrorState;
-
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  text-align: center;
-`;
-
-const Heading = styled.h2`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${colors.black};
-  margin: 0;
-`;
-
-const Message = styled.p`
-  color: ${colors.lightGrey};
-  margin: 0;
-`;
-
-const RetryButton = styled.button`
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #4c6ef5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #3b5bdb;
-  }
-`;

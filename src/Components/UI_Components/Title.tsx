@@ -1,5 +1,3 @@
-import styled from "styled-components";
-
 interface Props {
     children: React.ReactNode
 }
@@ -7,13 +5,9 @@ interface Props {
 const Navbar = ({ children }: Props) => {
     return (
         <div>
-            <Title>{children}</Title>
+            <div>{children}</div>
         </div>
     );
 };
 
 export default Navbar;
-
-const Title = styled.div`
-    
-`;

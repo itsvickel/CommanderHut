@@ -1,6 +1,5 @@
 import * as XLSX from 'xlsx';
 import React, { useState } from 'react';
-import styled from 'styled-components';
 
 interface DeckCard {
   name: string;
@@ -99,76 +98,35 @@ const DeckImport: React.FC<DeckImportProps> = ({ onImport }) => {
   const cardCountMap = countCards(previewCards);
 
   return (
-    <Container>
-      <Header>
-        <Title>
+    <div className="flex flex-col p-8">
+      <div>
+        <h1 className="text-[1.5rem]">
           Upload your deck list
-          <Information title="Accepted formats: JSON, XLSX, CSV, TXT">i</Information>
-        </Title>
-      </Header>
+          <span className="italic font-bold cursor-help" title="Accepted formats: JSON, XLSX, CSV, TXT">i</span>
+        </h1>
+      </div>
 
       {previewCards.length > 0 ? (
-        <CardPreview>
-
-        </CardPreview>
+        <div className="mt-8 font-mono flex flex-col gap-2">
+        </div>
       ) : (
-        <UploadArea
+        <div
           onDragOver={(e) => {
             e.preventDefault();
             setDragActive(true);
           }}
           onDragLeave={() => setDragActive(false)}
           onDrop={handleDrop}
-          dragActive={dragActive}
+          className={`mt-4 p-8 border-2 border-dashed rounded-[10px] text-center text-[#666] ${dragActive ? 'border-[#00bfff]' : 'border-[#ccc]'}`}
         >
           <label>
-            Drag and drop your file or <span className="browse">browse</span> your computer
+            Drag and drop your file or <span className="text-[#007bff] cursor-pointer">browse</span> your computer
             <input type="file" accept=".json,.xlsx,.csv,.txt" onChange={handleInputChange} hidden />
           </label>
-        </UploadArea>
+        </div>
       )}
-    </Container>
+    </div>
   );
 };
 
 export default DeckImport;
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-`;
-
-const Header = styled.div``;
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-`;
-
-const Information = styled.span`
-  font-style: italic;
-  font-weight: bold;
-  cursor: help;
-`;
-
-const UploadArea = styled.div<{ dragActive: boolean }>`
-  margin-top: 1rem;
-  padding: 2rem;
-  border: 2px dashed #ccc;
-  border-color: ${({ dragActive }) => (dragActive ? '#00bfff' : '#ccc')};
-  border-radius: 10px;
-  text-align: center;
-  color: #666;
-  .browse {
-    color: #007bff;
-    cursor: pointer;
-  }
-`;
-
-const CardPreview = styled.div`
-  margin-top: 2rem;
-  font-family: monospace;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;

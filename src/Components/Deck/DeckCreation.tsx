@@ -1,12 +1,10 @@
 import React from 'react';
 
-import styled from 'styled-components';
-
 import { Modal } from '../UI_Components';
 
 // Define the Props interface outside the component for better readability
 interface DeckProps {
- 
+
 }
 
 // Update the component to accept props of type CardProps
@@ -32,5 +30,3 @@ const DeckCreation: React.FC<DeckProps> = ({ obj, key }) => {
 };
 
 export default DeckCreation;
-
- 

@@ -1,6 +1,5 @@
 // src/Components/Chat/ChatInput.tsx
 import { useState, KeyboardEvent } from 'react';
-import styled from 'styled-components';
 
 interface Props {
   onSend: (text: string) => void;
@@ -24,55 +23,25 @@ const ChatInput = ({ onSend, disabled }: Props) => {
   };
 
   return (
-    <Bar>
-      <Textarea
+    <div className="flex gap-2 items-end px-4 py-3 border-t border-[#e5e7eb] bg-white">
+      <textarea
         value={text}
         onChange={e => setText(e.target.value)}
         onKeyDown={handleKey}
         placeholder="Ask anything about your Commander deck… (Enter to send)"
         disabled={disabled}
         rows={2}
+        className="flex-1 resize-none border border-[#d1d5db] rounded-lg px-3 py-2 text-[0.9rem] font-[inherit] leading-[1.4] focus:outline-none focus:border-[#2563eb] disabled:bg-[#f9fafb] disabled:cursor-not-allowed"
       />
-      <SendButton onClick={submit} disabled={disabled || !text.trim()}>
+      <button
+        onClick={submit}
+        disabled={disabled || !text.trim()}
+        className="bg-[#2563eb] text-white border-none rounded-lg px-5 py-2 font-semibold text-[0.9rem] cursor-pointer whitespace-nowrap disabled:bg-[#93c5fd] disabled:cursor-not-allowed"
+      >
         Send
-      </SendButton>
-    </Bar>
+      </button>
+    </div>
   );
 };
 
 export default ChatInput;
-
-const Bar = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  align-items: flex-end;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e5e7eb;
-  background: white;
-`;
-
-const Textarea = styled.textarea`
-  flex: 1;
-  resize: none;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  line-height: 1.4;
-  &:focus { outline: none; border-color: #2563eb; }
-  &:disabled { background: #f9fafb; cursor: not-allowed; }
-`;
-
-const SendButton = styled.button`
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
-  &:disabled { background: #93c5fd; cursor: not-allowed; }
-`;

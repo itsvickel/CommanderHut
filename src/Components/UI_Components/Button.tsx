@@ -1,28 +1,15 @@
-// src/Components/Button.tsx
-
-import styled from 'styled-components';
-
 interface Props {
   name?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-const Button = ({ name, onClick }: Props) => {
-  return <ButtonContainer onClick={onClick}>{name}</ButtonContainer>;
-};
+const Button = ({ name, onClick }: Props) => (
+  <button
+    onClick={onClick}
+    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg text-base font-medium cursor-pointer transition-colors border-none"
+  >
+    {name}
+  </button>
+);
 
 export default Button;
-
-const ButtonContainer = styled.button`
-  padding: 10px 16px;
-  background-color: #4c6ef5;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #3b5bdb;
-  }
-`;

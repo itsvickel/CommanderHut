@@ -1,19 +1,15 @@
 import { Link } from 'react-router-dom';
 
-import styled from 'styled-components';
-
 interface Props {
-    name?: string; 
+    name?: string;
 }
 
 const Filtercards = ({   }: Props) => {
     return (
-        <div  > 
-           
+        <div>
+
         </div>
     );
 };
 
 export default Filtercards;
-
- 
