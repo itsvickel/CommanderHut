@@ -235,7 +235,7 @@ const EditDeck = () => {
             <label className="text-[0.85rem] text-[#555] font-medium">Commander</label>
             <input
               value={commander}
-              onChange={e => { setCommander(e.target.value); setShowCommanderSuggestions(true); }}
+              onChange={e => { setCommander(e.target.value); setCommanderImage(''); setShowCommanderSuggestions(true); }}
               onBlur={() => setTimeout(() => setShowCommanderSuggestions(false), 150)}
               className="px-2.5 py-2 border border-[#ddd] rounded-md text-[0.9rem] bg-[#fafafa] focus:outline-none focus:border-[#888] focus:bg-white"
             />
@@ -356,13 +356,13 @@ const EditDeck = () => {
               </div>
             ))}
           </div>
+          {notFoundCards.length > 0 && (
+            <p className="text-[#c0392b] text-[0.88rem] mt-2">Cards not found in database: {notFoundCards.join(', ')}</p>
+          )}
         </div>
       </div>
 
       {saveError && <p className="text-[#c0392b] text-[0.88rem] mt-2">{saveError}</p>}
-      {notFoundCards.length > 0 && (
-        <p className="text-[#c0392b] text-[0.88rem] mt-2">Cards not found in database: {notFoundCards.join(', ')}</p>
-      )}
 
       <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-[#eee]">
         <button
