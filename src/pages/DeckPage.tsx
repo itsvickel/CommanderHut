@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { fetchAllDecks } from '../services/deckService';
+import { useSelector } from 'react-redux';
+import { fetchAllDecks, deleteDeck } from '../services/deckService';
+import { selectCurrentUser } from '../store/AuthSlice';
+import DeckOverflowMenu from '../Components/Deck/DeckOverflowMenu';
+import DeleteDeckModal from '../Components/Deck/DeleteDeckModal';
 import Spinner from '../Components/UI_Components/Spinner';
 import ErrorState from '../Components/UI_Components/ErrorState';
 
@@ -9,7 +13,12 @@ const DeckPage = () => {
   const [decks, setDecks] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const navigate = useNavigate();
+  const currentUser = useSelector(selectCurrentUser);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -25,11 +34,23 @@ const DeckPage = () => {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const navigateToDeckList = (id: string) => navigate(`/decks/${id}`);
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteDeck(deleteTarget.id);
+      setDecks(prev => prev.filter(d => d._id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err: any) {
+      console.error('Error deleting deck:', err);
+      setDeleteError(err?.response?.data?.error ?? 'Failed to delete deck. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (loading) return <Spinner label="Loading decks" />;
   if (error) return <ErrorState message={error} retry={load} />;
@@ -37,29 +58,50 @@ const DeckPage = () => {
   return (
     <PageWrapper>
       <SectionTitle>Your Decks</SectionTitle>
-      <DeckList>
+      <DeckGrid>
         {decks.length === 0 ? (
           <NoDecks>No decks found. Create one!</NoDecks>
         ) : (
-          decks.map((item) => (
-            <DeckCard key={item._id} onClick={() => navigateToDeckList(item._id)}>
-              <DeckCommanderImage
-                src={item.commander_image || '/images/placeholder_commander.png'}
-                alt={`${item.deck_name} Commander`}
-              />
-              <DeckInfo>
-                <DeckTitle>{item.deck_name}</DeckTitle>
-                <DeckDetails>
-                  <DetailItem><strong>Owner:</strong> {item.owner_email || 'Anonymous'}</DetailItem>
-                  <DetailItem>
-                    <strong>Last Updated:</strong> {new Date(item.updated_at).toLocaleDateString()}
-                  </DetailItem>
-                </DeckDetails>
-              </DeckInfo>
-            </DeckCard>
-          ))
+          decks.map((item) => {
+            const isOwner = item.owner === currentUser?.id;
+            return (
+              <DeckCard key={item._id} onClick={() => navigate(`/decks/${item._id}`)}>
+                {isOwner && (
+                  <OverflowWrapper>
+                    <DeckOverflowMenu
+                      onEdit={() => navigate(`/decks/${item._id}/edit`)}
+                      onDelete={() => setDeleteTarget({ id: item._id, name: item.deck_name })}
+                    />
+                  </OverflowWrapper>
+                )}
+                <DeckCommanderImage
+                  src={item.commander_image || '/images/placeholder_commander.png'}
+                  alt={`${item.deck_name} Commander`}
+                />
+                <DeckInfo>
+                  <DeckTitle>{item.deck_name}</DeckTitle>
+                  <DeckDetails>
+                    <DetailItem><strong>Owner:</strong> {item.owner_email || 'Anonymous'}</DetailItem>
+                    <DetailItem>
+                      <strong>Last Updated:</strong>{' '}
+                      {new Date(item.updated_at).toLocaleDateString()}
+                    </DetailItem>
+                  </DeckDetails>
+                </DeckInfo>
+              </DeckCard>
+            );
+          })
         )}
-      </DeckList>
+      </DeckGrid>
+
+      <DeleteDeckModal
+        isOpen={!!deleteTarget}
+        deckName={deleteTarget?.name ?? ''}
+        isDeleting={isDeleting}
+        deleteError={deleteError}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => { setDeleteTarget(null); setDeleteError(null); }}
+      />
     </PageWrapper>
   );
 };
@@ -82,7 +124,7 @@ const SectionTitle = styled.h2`
   font-weight: 700;
 `;
 
-const DeckList = styled.div`
+const DeckGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
@@ -98,6 +140,7 @@ const NoDecks = styled.p`
 `;
 
 const DeckCard = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -113,6 +156,13 @@ const DeckCard = styled.div`
   }
 
   &:hover img { transform: scale(1.1); }
+`;
+
+const OverflowWrapper = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
 `;
 
 const DeckCommanderImage = styled.img`
