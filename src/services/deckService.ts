@@ -70,69 +70,61 @@ export const fetchAllDecks = async (): Promise<any> => {
   }
 };
 
-/**
- * fetching decklist by username 
- * @returns {Promise<any>} - The response from the backend (e.g., confirmation message).
- */
-export const fetchDeckListByName = async (): Promise<any> => {
+export const fetchDeckListByName = async (userId: string): Promise<any> => {
   try {
-    const response = await axios.get(API_ENDPOINT.DECK_BY_USER);
-
-    if (!response || !response.data) {
-      throw new Error("Failed fetch user decklist");
-    }
+    const response = await axios.get(`${API_ENDPOINT.DECK_BY_USER}/${userId}`);
+    if (!response || !response.data) throw new Error('Failed to fetch user decklist');
     return response.data;
   } catch (error) {
-    console.error("Error fetching deck list:", error);
+    console.error('Error fetching user deck list:', error);
     throw error;
   }
 };
 
-/**
- * fetching deck list by ID
- * @returns {Promise<any>} - The response from the backend (e.g., confirmation message).
- */
-export const fetchDeckListByID = async (id: number): Promise<any> => {
+export const fetchDeckListByID = async (id: string): Promise<any> => {
   try {
-    const response = await axios.get(API_ENDPOINT.DECK_BY_ID + id);
-
-    if (!response || !response.data) {
-      throw new Error("Failed fetch user decklist");
-    }
-
+    const response = await axios.get(`${API_ENDPOINT.DECK_BY_ID}${id}`);
+    if (!response || !response.data) throw new Error('Failed to fetch deck');
     return response.data;
   } catch (error) {
-    console.error("Error fetching deck list:", error);
+    console.error('Error fetching deck by ID:', error);
     throw error;
   }
 };
 
-/**
- * Updates an existing deck by ID.
- *
- * @param {string} id - The ID of the deck to update.
- * @param {DeckUpdatePayload} payload - The fields to update on the deck.
- * @returns {Promise<DeckUpdatePayload>} A promise that resolves to the updated deck data returned by the backend.
- */
-export const updateDeck = async (id: string, payload: DeckUpdatePayload): Promise<DeckUpdatePayload> => {
+export const updateDeck = async (
+  id: string,
+  payload: { name?: string; cards?: { name: string; quantity: number }[] }
+): Promise<any> => {
   try {
-    const response = await axios.patch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, payload);
-    return response.data;
+    const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      const error = new Error(result.error || 'Failed to update deck');
+      (error as any).details = result;
+      throw error;
+    }
+    return result;
   } catch (error) {
     console.error('Error updating deck:', error);
     throw error;
   }
 };
 
-/**
- * Deletes a deck by ID.
- *
- * @param {string} id - The ID of the deck to delete.
- * @returns {Promise<void>} A promise that resolves when the deck has been successfully deleted.
- */
 export const deleteDeck = async (id: string): Promise<void> => {
   try {
-    await axios.delete(`${API_ENDPOINT.DECK_BASE_URL}/${id}`);
+    const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || 'Failed to delete deck');
+    }
   } catch (error) {
     console.error('Error deleting deck:', error);
     throw error;
