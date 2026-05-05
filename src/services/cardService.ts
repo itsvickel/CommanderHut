@@ -90,7 +90,7 @@ export const fetchCardsFromAI = async (query: string): Promise<string[]> => {
       .split(",")
       .map((card: string) => card.trim());
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching cards from AI:", error.response?.data || error);
     return [];
   }
@@ -122,7 +122,7 @@ export const fetchDecklistFromAI = async (query: string): Promise<string[]> => {
       .split(",")
       .map((card: string) => card.trim());
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching cards from AI:", error.response?.data || error);
     return [];
   }

@@ -1,11 +1,5 @@
-import { Card } from '../types/cardTypes';
 import axios from 'axios';
 import API_ENDPOINT from "../Constants/api";
-
-interface SelectedCard {
-  id: string;
-  quantity?: number;
-}
 
 export interface DeckUpdatePayload {
   deck_name?: string;

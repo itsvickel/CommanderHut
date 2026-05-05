@@ -1,5 +1,5 @@
 
-const checkIsUserlogged = () => {
+export const checkIsUserlogged = () => {
 
     const userInfo = sessionStorage.getItem('user');
 

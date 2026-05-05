@@ -73,7 +73,7 @@ const DeckPanel = ({ deck }: Props) => {
         <div className="text-xs font-bold uppercase text-gray-400 tracking-widest my-2">Commander</div>
         <div
           className="flex items-baseline gap-2 py-1 border-b border-gray-50 dark:border-gray-800 cursor-default"
-          onMouseEnter={e => handleHover(e, deck.commander, deck.commanderImageUri)}
+          onMouseEnter={e => handleHover(e, deck.commander, deck.commanderImageUri ?? '')}
           onMouseLeave={() => setHoveredCard(null)}
         >
           <span className="text-xs text-gray-700 dark:text-gray-300 flex-1">{deck.commander}</span>

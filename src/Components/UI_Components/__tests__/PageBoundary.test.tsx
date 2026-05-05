@@ -1,16 +1,9 @@
-import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PageBoundary from '../PageBoundary';
 
 const Boom = () => {
   throw new Error('kaboom');
-};
-
-const Toggle = () => {
-  const [crashed, setCrashed] = useState(true);
-  if (crashed) throw new Error('first render crash');
-  return <div>recovered</div>;
 };
 
 describe('PageBoundary', () => {

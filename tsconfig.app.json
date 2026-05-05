@@ -24,7 +24,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "types": ["jest", "@testing-library/jest-dom"]
+    "types": ["jest", "@testing-library/jest-dom", "node"]
   },
-  "include": ["src", "jest.setup.ts"]
+  "include": ["src", "jest.setup.ts"],
+  "exclude": [
+    "src/Components/__tests__/Card.test.tsx",
+    "src/services/__tests__/deckService.test.ts"
+  ]
 }

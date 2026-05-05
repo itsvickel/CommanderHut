@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type SearchBarProps = {
   fetchOptions: (query: string) => Promise<any[]>;
@@ -10,7 +10,7 @@ const SearchBar = ({ fetchOptions, onSelect }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close dropdown

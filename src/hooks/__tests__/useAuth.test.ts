@@ -20,7 +20,7 @@ const buildStore = () =>
 
 const wrapper = (store: ReturnType<typeof buildStore>) =>
   ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+    React.createElement(Provider, { store, children } as any);
 
 const userFixture = { id: '1', username: 'ada', email_address: 'ada@example.com', is_admin: false };
 
