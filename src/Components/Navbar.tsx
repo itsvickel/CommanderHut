@@ -1,25 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  logoutLocal,
-  selectAuthStatus,
-  selectIsAdmin,
-} from '../store/AuthSlice';
+import { logoutLocal, selectAuthStatus, selectIsAdmin } from '../store/AuthSlice';
 import { logoutUser } from '../services/userService.js';
-import colors from '../styles/colors.js';
-import Button from './UI_Components/Button.js';
+import { useTheme } from '../context/ThemeContext';
 
-interface NavLink {
-  name: string;
-  to: string;
-}
+interface NavLink { name: string; to: string; }
 
-const PUBLIC_LINKS: NavLink[] = [
-  { name: 'Cards', to: '/cards' },
-];
-
+const PUBLIC_LINKS: NavLink[] = [{ name: 'Cards', to: '/cards' }];
 const PROTECTED_LINKS: NavLink[] = [
   { name: 'Decks', to: '/decks' },
   { name: 'Sandbox', to: '/sandbox' },
@@ -27,11 +14,24 @@ const PROTECTED_LINKS: NavLink[] = [
   { name: 'Profile', to: '/profile' },
 ];
 
+const SunIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+);
+
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const status = useSelector(selectAuthStatus);
   const isAdmin = useSelector(selectIsAdmin);
+  const { theme, toggleTheme } = useTheme();
 
   const onLogout = () => {
     dispatch(logoutLocal());
@@ -39,54 +39,42 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const links = status === 'authenticated'
-    ? [...PUBLIC_LINKS, ...PROTECTED_LINKS]
-    : PUBLIC_LINKS;
+  const links = status === 'authenticated' ? [...PUBLIC_LINKS, ...PROTECTED_LINKS] : PUBLIC_LINKS;
+  const linkClass = 'px-3 py-1 text-sm text-gray-900 dark:text-gray-100 no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors';
 
   return (
-    <NavigationContainer>
+    <nav className="fixed top-0 w-full z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-1">
       {links.map((item) => (
-        <LinkItem key={item.to} to={item.to}>{item.name}</LinkItem>
+        <Link key={item.to} to={item.to} className={linkClass}>{item.name}</Link>
       ))}
       {status === 'unauthenticated' && (
         <>
-          <LinkItem to="/login">Login</LinkItem>
-          <LinkItem to="/register">Register</LinkItem>
+          <Link to="/login" className={linkClass}>Login</Link>
+          <Link to="/register" className={linkClass}>Register</Link>
         </>
       )}
       {status === 'authenticated' && isAdmin && (
-        <AdminLink to="/admin/masterprompt">Admin</AdminLink>
+        <Link to="/admin/masterprompt" className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 no-underline hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Admin</Link>
       )}
-      {status === 'authenticated' && (
-        <Button onClick={onLogout} name="Logout" />
-      )}
-    </NavigationContainer>
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
+        {status === 'authenticated' && (
+          <button
+            onClick={onLogout}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors border-none cursor-pointer"
+          >
+            Logout
+          </button>
+        )}
+      </div>
+    </nav>
   );
 };
 
 export default Navbar;
-
-const NavigationContainer = styled.div`
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 100;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 0.75rem 0;
-`;
-
-const LinkItem = styled(Link)`
-  margin: 3%;
-  padding: 2%;
-  color: ${colors.black};
-  text-decoration: none;
-`;
-
-const AdminLink = styled(Link)`
-  margin: 3%;
-  padding: 2%;
-  color: #6b7280;
-  font-size: 0.85rem;
-  text-decoration: none;
-`;
