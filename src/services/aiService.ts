@@ -1,27 +1,71 @@
-import axios from "axios";
-import API_ENDPOINT from "../Constants/api";
-import { ParsedDeck } from "../types/chat";
+import API_ENDPOINT from '../Constants/api';
+import { ParsedDeck } from '../types/chat';
 
-export const fetchMTGIdea = async (prompt: string): Promise<ParsedDeck> => {
-  try {
-    const response = await axios.post(
-      API_ENDPOINT.AI_GENERATE,
-      { prompt, format: 'Commander' },
-      { withCredentials: true }
-    );
-    const data = response.data;
-    if (!data.commander || !Array.isArray(data.cards)) {
-      throw new Error('Unexpected response shape');
-    }
-    return {
-      generationId: data.generation_id ?? '',
-      commander: data.commander.name,
-      commanderImageUri: data.commander.image_uris?.normal ?? data.commander.image_uris?.small ?? '',
-      cards: data.cards,
-      strategy: data.strategy ?? '',
-    };
-  } catch (error) {
-    console.error("AI service error:", error);
-    throw new Error("Failed to fetch AI response");
+export type ProgressEvent = {
+  stage: string;
+  message: string;
+};
+
+export const fetchMTGIdea = async (
+  prompt: string,
+  onProgress?: (event: ProgressEvent) => void
+): Promise<ParsedDeck> => {
+  const response = await fetch(API_ENDPOINT.AI_GENERATE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ prompt, format: 'Commander' }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(`HTTP ${response.status}`);
   }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const blocks = buffer.split('\n\n');
+    buffer = blocks.pop()!;
+
+    for (const block of blocks) {
+      if (!block.trim()) continue;
+
+      const lines = block.split('\n');
+      const eventLine = lines.find(l => l.startsWith('event: '));
+      const dataLine = lines.find(l => l.startsWith('data: '));
+      if (!dataLine) continue;
+
+      const eventType = eventLine ? eventLine.slice(7).trim() : 'message';
+      const data = JSON.parse(dataLine.slice(6));
+
+      if (eventType === 'progress' && onProgress) {
+        onProgress(data as ProgressEvent);
+      } else if (eventType === 'result') {
+        reader.cancel();
+        const d = data;
+        if (!d.commander || !Array.isArray(d.cards)) {
+          throw new Error('Unexpected response shape');
+        }
+        return {
+          generationId: d.generation_id ?? '',
+          commander: d.commander.name,
+          commanderImageUri: d.commander.image_uris?.normal ?? d.commander.image_uris?.small ?? '',
+          commanderReason: d.commander.reason ?? '',
+          cards: d.cards,
+          strategy: d.strategy ?? '',
+          themes: d.themes ?? [],
+        };
+      } else if (eventType === 'error') {
+        throw new Error(data.message ?? 'Generation failed');
+      }
+    }
+  }
+
+  throw new Error('Stream ended without a result event');
 };

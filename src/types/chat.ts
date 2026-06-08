@@ -16,7 +16,9 @@ export interface ParsedDeck {
   generationId?: string;
   commander: string;
   commanderImageUri?: string;
+  commanderReason?: string;
   cards: CardEntry[];
   strategy?: string;
+  themes?: string[];
   rawText?: string;
 }
