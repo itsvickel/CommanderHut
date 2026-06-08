@@ -1,57 +1,79 @@
-import { useState } from 'react';
-import { Message, ParsedDeck } from '../types/chat';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Message } from '../types/chat';
 import { buildPromptFromMessages } from '../utils/chatPrompt';
 import { fetchMTGIdea, ProgressEvent } from '../services/aiService';
-import MessageList from '../Components/Chat/MessageList';
+import MessageList, { ProgressState } from '../Components/Chat/MessageList';
 import ChatInput from '../Components/Chat/ChatInput';
 import DeckPanel from '../Components/Decksmith/DeckPanel';
-import GenerationProgress from '../Components/UI_Components/GenerationProgress';
+import SessionsPanel from '../Components/Decksmith/SessionsPanel';
+import {
+  createSession,
+  setActiveSession,
+  appendMessage,
+  setDeck,
+  updateSessionTitle,
+  selectSessions,
+  selectActiveSessionId,
+  selectActiveSession,
+} from '../store/decksmithSlice';
+import { AppDispatch } from '../store';
 
-const GENERATION_STAGES = [
-  { id: 'generating', label: 'Generating deck concept' },
-  { id: 'validating_commander', label: 'Validating commander' },
-  { id: 'commander', label: 'Commander confirmed' },
-  { id: 'validating_cards', label: 'Validating cards' },
-  { id: 'filling', label: 'Filling remaining slots' },
-  { id: 'finalising', label: 'Finalising deck' },
+const STAGE_IDS = [
+  'generating',
+  'validating_commander',
+  'commander',
+  'validating_cards',
+  'filling',
+  'finalising',
 ];
 
 const Decksmith = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [currentDeck, setCurrentDeck] = useState<ParsedDeck | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const sessions = useSelector(selectSessions);
+  const activeSessionId = useSelector(selectActiveSessionId);
+  const activeSession = useSelector(selectActiveSession);
+
   const [loading, setLoading] = useState(false);
-  const [activeStage, setActiveStage] = useState<string | null>(null);
-  const [activeMessage, setActiveMessage] = useState<string>('');
-  const [completedStages, setCompletedStages] = useState<string[]>([]);
-  const [progressError, setProgressError] = useState<{ stage: string; message: string } | null>(null);
+  const [progress, setProgress] = useState<ProgressState>({
+    activeStage: null,
+    activeMessage: '',
+    completedStages: [],
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!activeSessionId) {
+      dispatch(createSession());
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleProgress = (event: ProgressEvent) => {
-    setActiveStage(event.stage);
-    setActiveMessage(event.message);
-    setCompletedStages(() => {
-      const idx = GENERATION_STAGES.findIndex(s => s.id === event.stage);
-      if (idx <= 0) return [];
-      return GENERATION_STAGES.slice(0, idx).map(s => s.id);
+    const idx = STAGE_IDS.indexOf(event.stage);
+    setProgress({
+      activeStage: event.stage,
+      activeMessage: event.message,
+      completedStages: idx > 0 ? STAGE_IDS.slice(0, idx) : [],
+      error: null,
     });
   };
 
   const handleSend = async (text: string) => {
+    if (!activeSessionId) return;
+
     const userMsg: Message = { role: 'user', content: text, timestamp: Date.now() };
-    const nextMessages = [...messages, userMsg];
-    setMessages(nextMessages);
+    dispatch(appendMessage({ sessionId: activeSessionId, message: userMsg }));
+
     setLoading(true);
-    setCurrentDeck(null);
-    setCompletedStages([]);
-    setActiveStage(null);
-    setActiveMessage('');
-    setProgressError(null);
+    setProgress({ activeStage: null, activeMessage: '', completedStages: [], error: null });
 
     try {
-      const prompt = buildPromptFromMessages(nextMessages);
+      const allMessages = [...(activeSession?.messages ?? []), userMsg];
+      const prompt = buildPromptFromMessages(allMessages);
       const deck = await fetchMTGIdea(prompt, handleProgress);
 
-      setCompletedStages(GENERATION_STAGES.map(s => s.id));
-      setActiveStage(null);
+      setProgress(prev => ({ ...prev, completedStages: STAGE_IDS, activeStage: null }));
 
       const aiMsg: Message = {
         role: 'assistant',
@@ -60,40 +82,52 @@ const Decksmith = () => {
           : `Here's your **${deck.commander}** deck!`,
         timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, aiMsg]);
-      setCurrentDeck(deck);
+      dispatch(appendMessage({ sessionId: activeSessionId, message: aiMsg }));
+      dispatch(setDeck({ sessionId: activeSessionId, deck }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong.';
-      setProgressError({ stage: activeStage ?? 'generating', message: errorMessage });
-      const errorMsg: Message = {
-        role: 'assistant',
-        content: `Something went wrong: ${errorMessage}`,
-        timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, errorMsg]);
+      setProgress(prev => ({
+        ...prev,
+        error: { stage: prev.activeStage ?? 'generating', message: errorMessage },
+      }));
+      dispatch(appendMessage({
+        sessionId: activeSessionId,
+        message: {
+          role: 'assistant',
+          content: `Something went wrong: ${errorMessage}`,
+          timestamp: Date.now(),
+        },
+      }));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 flex overflow-hidden bg-gray-50 dark:bg-gray-900" style={{ paddingTop: '72px' }}>
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
-        <MessageList messages={messages} loading={loading} />
+    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 48px)' }}>
+      <SessionsPanel
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={(id) => dispatch(setActiveSession(id))}
+        onNewSession={() => dispatch(createSession())}
+      />
+      <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200 dark:border-gray-700">
+        <MessageList
+          messages={activeSession?.messages ?? []}
+          loading={loading}
+          progress={loading ? progress : undefined}
+        />
         <ChatInput onSend={handleSend} disabled={loading} />
       </div>
-      <div className="overflow-hidden flex-shrink-0 flex flex-col" style={{ width: '360px' }}>
-        {loading ? (
-          <GenerationProgress
-            stages={GENERATION_STAGES}
-            activeStage={activeStage}
-            activeMessage={activeMessage}
-            completedStages={completedStages}
-            error={progressError}
-          />
-        ) : (
-          <DeckPanel deck={currentDeck} />
-        )}
+      <div className="flex-shrink-0 overflow-hidden flex flex-col" style={{ width: '320px' }}>
+        <DeckPanel
+          deck={activeSession?.deck ?? null}
+          onSave={(deckName) => {
+            if (activeSessionId) {
+              dispatch(updateSessionTitle({ sessionId: activeSessionId, title: deckName }));
+            }
+          }}
+        />
       </div>
     </div>
   );

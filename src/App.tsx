@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ReactElement } from 'react';
 
 import Decksmith from './pages/Decksmith';
-import Navbar from './Components/Navbar';
+import AppLayout from './Components/Layout/AppLayout';
 import CardPage from './pages/CardPage';
 import DeckPage from './pages/DeckPage';
 import Sandbox from './pages/Sandbox';
@@ -35,8 +35,7 @@ const AppComponent = () => {
   useAuth();
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
-      <Navbar />
+    <AppLayout>
       <Routes>
         <Route path="/" element={publicRoute(<Home />)} />
         <Route path="/cards" element={publicRoute(<CardPage />)} />
@@ -50,7 +49,7 @@ const AppComponent = () => {
         <Route path="/profile" element={protectedRoute(<ProfilePage />)} />
         <Route path="/admin/masterprompt" element={adminRoute(<AdminMasterPrompt />)} />
       </Routes>
-    </div>
+    </AppLayout>
   );
 };
 

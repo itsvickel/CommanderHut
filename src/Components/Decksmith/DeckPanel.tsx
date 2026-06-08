@@ -6,11 +6,14 @@ import { postDeckList } from '../../services/deckService';
 import { selectIsAuthenticated } from '../../store/AuthSlice';
 import DeckPanelEmpty from './DeckPanelEmpty';
 
-interface Props { deck: ParsedDeck | null; }
+interface Props {
+  deck: ParsedDeck | null;
+  onSave?: (deckName: string) => void;
+}
 interface HoveredCard { name: string; imageUri: string; top: number; right: number; }
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
 
-const DeckPanel = ({ deck }: Props) => {
+const DeckPanel = ({ deck, onSave }: Props) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [savedDeckId, setSavedDeckId] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<HoveredCard | null>(null);
@@ -42,6 +45,7 @@ const DeckPanel = ({ deck }: Props) => {
       });
       setSavedDeckId(result?._id ?? null);
       setSaveStatus('success');
+      onSave?.(`${deck.commander} deck`);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
