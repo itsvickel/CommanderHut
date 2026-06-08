@@ -98,7 +98,7 @@ Max 2 retries. If both fail → return `{ error: "Could not find a valid command
 
 ## Card Validation Loop
 
-Runs after step ②, in parallel with commander validation where possible.
+Runs after step ③ (commander must be validated first — color identity is needed to check each card).
 
 - Uses Scryfall's `/cards/collection` endpoint — one API call for all 30 cards.
 - Each card checked: exists, legal in Commander, color identity ⊆ commander's color identity.
@@ -114,7 +114,7 @@ Runs after step ②, in parallel with commander validation where possible.
 
 ## SSE Progress Events
 
-Backend endpoint changes from `POST /api/ai/generate` (JSON response) to `GET /api/ai/generate` (SSE, `text/event-stream`).
+Backend endpoint stays `POST /api/ai/generate` but switches its response to SSE (`Content-Type: text/event-stream`). The request body is unchanged — prompt, bracket, budget tier sent as JSON. The frontend opens the connection with `fetch` (not `EventSource`, which doesn't support POST) and reads the response body as a stream.
 
 ### Event types
 
@@ -146,7 +146,7 @@ data: { "stage": "validating_commander", "message": "Commander not found — try
 
 ### Frontend changes (Decksmith)
 
-- Replace `fetchMTGIdea` (fetch-based) with an `EventSource` connection.
+- Replace `fetchMTGIdea` (fetch-based) with a `fetch`-based streaming reader (POST + `text/event-stream` response). `EventSource` is not used because it doesn't support POST.
 - Replace spinner with a stage checklist:
   - Pending stages: grey circle
   - Current stage: spinning indicator + stage label
