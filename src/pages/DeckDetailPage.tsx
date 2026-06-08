@@ -38,7 +38,7 @@ const DeckDetailPage = () => {
   const [pendingName, setPendingName] = useState('');
   const [removedNames, setRemovedNames] = useState<Set<string>>(new Set());
   const [addedByColumn, setAddedByColumn] = useState<Record<string, string[]>>({});
-  const [addInputs, setAddInputs] = useState<Record<string, string>>({});
+  const [addInputs, setAddInputs] = useState<Record<string, string | undefined>>({});
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -136,8 +136,14 @@ const DeckDetailPage = () => {
     const name = (addInputs[col] ?? '').trim();
     if (!name) return;
     setAddedByColumn((prev) => ({ ...prev, [col]: [...(prev[col] ?? []), name] }));
-    setAddInputs((prev) => ({ ...prev, [col]: '' }));
+    setAddInputs((prev) => { const next = { ...prev }; delete next[col]; return next; });
   };
+
+  const openAddInput = (col: string) =>
+    setAddInputs((prev) => ({ ...prev, [col]: '' }));
+
+  const closeAddInput = (col: string) =>
+    setAddInputs((prev) => { const next = { ...prev }; delete next[col]; return next; });
 
   if (loading) return <Spinner label="Loading deck" />;
   if (fetchError) return <ErrorState message={fetchError} retry={loadDeck} />;
@@ -160,6 +166,7 @@ const DeckDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
+      {/* Header */}
       <div className="max-w-screen-xl mx-auto mb-6 flex flex-wrap items-start gap-4">
         <div className="flex-1 min-w-0">
           {isOwner ? (
@@ -184,13 +191,13 @@ const DeckDetailPage = () => {
             <button
               onClick={handleSave}
               disabled={!isDirty || saving}
-              className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded disabled:opacity-40 hover:bg-blue-700"
+              className="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-amber-600 transition-colors"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
             <button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Delete
             </button>
@@ -209,7 +216,8 @@ const DeckDetailPage = () => {
         </ul>
       )}
 
-      <div className="max-w-screen-xl mx-auto flex gap-4 overflow-x-auto pb-4 items-start">
+      {/* Card sections grouped by type */}
+      <div className="max-w-screen-xl mx-auto space-y-8 pb-8">
         {allColumns.map((col) => {
           const cards = groupedCards[col] ?? [];
           const added = addedByColumn[col] ?? [];
@@ -217,48 +225,67 @@ const DeckDetailPage = () => {
           if (!isOwner && total === 0) return null;
 
           return (
-            <div key={col} className="min-w-[160px] flex-shrink-0">
-              <h3 className="font-semibold text-sm mb-2 pb-1 border-b border-gray-300 dark:border-gray-700">
-                {col} ({total})
+            <div key={col}>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                {col}
+                <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs font-normal">
+                  {total}
+                </span>
               </h3>
 
-              {cards.map((card) => (
-                <div
-                  key={card.name}
-                  className="flex items-center gap-1 text-sm py-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded px-1 cursor-default group"
-                  onMouseEnter={(e) => {
-                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                    setHoveredCard({ name: card.name, imageUri: card.imageUri });
-                    setTooltipPos({ x: rect.right + 8, y: rect.top });
-                  }}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  <span className="text-gray-500 dark:text-gray-400 text-xs shrink-0">
-                    {card.quantity}×
-                  </span>
-                  <span className="flex-1 truncate">{card.name}</span>
-                  {isOwner && (
-                    <button
-                      aria-label={`Remove ${card.name}`}
-                      onClick={() =>
-                        setRemovedNames((prev) => new Set([...prev, card.name]))
-                      }
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 ml-1 shrink-0"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {/* Existing cards */}
+                {cards.map((card) => (
+                  <div
+                    key={card.name}
+                    className="relative group flex-shrink-0 cursor-default"
+                    onMouseEnter={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const tooltipWidth = 192;
+                      const x = rect.right + 8 + tooltipWidth > window.innerWidth
+                        ? rect.left - tooltipWidth - 8
+                        : rect.right + 8;
+                      setHoveredCard({ name: card.name, imageUri: card.imageUri });
+                      setTooltipPos({ x, y: rect.top });
+                    }}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    {card.imageUri ? (
+                      <img
+                        src={card.imageUri}
+                        alt={card.name}
+                        className="w-20 rounded-md shadow-md"
+                      />
+                    ) : (
+                      <div className="w-20 h-28 bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-xs text-center p-1 shadow-md">
+                        {card.name}
+                      </div>
+                    )}
+                    {card.quantity > 1 && (
+                      <span className="absolute bottom-1 right-1 bg-black/70 text-white text-xs rounded px-1 leading-tight">
+                        ×{card.quantity}
+                      </span>
+                    )}
+                    {isOwner && (
+                      <button
+                        aria-label={`Remove ${card.name}`}
+                        onClick={() =>
+                          setRemovedNames((prev) => new Set([...prev, card.name]))
+                        }
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-600 hover:bg-red-700 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center transition-opacity"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
 
-              {added.map((name, i) => (
-                <div
-                  key={`added-${col}-${i}`}
-                  className="flex items-center gap-1 text-sm py-0.5 px-1 text-blue-600 dark:text-blue-400"
-                >
-                  <span className="text-xs shrink-0">1×</span>
-                  <span className="flex-1 truncate">{name}</span>
-                  {isOwner && (
+                {/* Pending (added) cards */}
+                {added.map((name, i) => (
+                  <div key={`added-${col}-${i}`} className="relative flex-shrink-0">
+                    <div className="w-20 h-28 border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-md flex items-center justify-center text-xs text-center p-1 text-amber-700 dark:text-amber-400">
+                      {name}
+                    </div>
                     <button
                       aria-label={`Remove ${name}`}
                       onClick={() =>
@@ -267,33 +294,60 @@ const DeckDetailPage = () => {
                           [col]: prev[col].filter((_, j) => j !== i),
                         }))
                       }
-                      className="text-red-400 hover:text-red-600 ml-1 shrink-0"
+                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
                     >
                       ×
                     </button>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
 
-              {isOwner && (
-                <input
-                  aria-label={`Add card to ${col}`}
-                  className="mt-2 w-full text-xs border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 bg-transparent focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Add card…"
-                  value={addInputs[col] ?? ''}
-                  onChange={(e) =>
-                    setAddInputs((prev) => ({ ...prev, [col]: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddCard(col);
-                  }}
-                />
-              )}
+                {/* Add card slot (owner only) */}
+                {isOwner && (
+                  <div className="w-20 h-28 flex-shrink-0">
+                    {addInputs[col] !== undefined ? (
+                      <div className="flex flex-col h-full gap-1">
+                        <input
+                          aria-label={`Add card to ${col}`}
+                          className="flex-1 w-full text-xs border border-gray-300 dark:border-gray-600 rounded p-1 bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          placeholder="Card name…"
+                          value={addInputs[col] ?? ''}
+                          autoFocus
+                          onChange={(e) =>
+                            setAddInputs((prev) => ({ ...prev, [col]: e.target.value }))
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddCard(col);
+                            if (e.key === 'Escape') closeAddInput(col);
+                          }}
+                          onBlur={() => {
+                            if (!addInputs[col]) closeAddInput(col);
+                          }}
+                        />
+                        <button
+                          onClick={() => handleAddCard(col)}
+                          className="text-xs bg-amber-500 hover:bg-amber-600 text-white rounded px-1 py-0.5 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        aria-label={`Add card to ${col}`}
+                        onClick={() => openAddInput(col)}
+                        className="w-full h-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md flex items-center justify-center text-2xl text-gray-400 dark:text-gray-600 hover:border-amber-400 hover:text-amber-400 transition-colors"
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
 
+      {/* Hover tooltip */}
       {hoveredCard?.imageUri && (
         <div
           className="fixed z-50 pointer-events-none"
