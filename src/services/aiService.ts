@@ -1,5 +1,6 @@
 import API_ENDPOINT from '../Constants/api';
 import { ParsedDeck, DeckDiff } from '../types/chat';
+import { DeckAnalysis } from '../types/analysis';
 import { postSseStream, ProgressEvent } from './sseClient';
 
 export type { ProgressEvent };
@@ -92,4 +93,31 @@ export const refineDeck = async (
     throw new Error('Unexpected response shape');
   }
   return { adds: result.adds, cuts: result.cuts, summary: result.summary ?? '' };
+};
+
+/**
+ * Analyses a saved deck: deterministic stats computed server-side plus an
+ * LLM critique grounded in those numbers, with real upgrade suggestions.
+ */
+export const analyzeDeck = async (
+  deckId: string,
+  onProgress?: (event: ProgressEvent) => void
+): Promise<DeckAnalysis> => {
+  const result = await postSseStream<DeckAnalysis>(
+    API_ENDPOINT.AI_ANALYZE,
+    { deck_id: deckId },
+    onProgress
+  );
+
+  if (!result?.stats) {
+    throw new Error('Unexpected response shape');
+  }
+  return {
+    stats: result.stats,
+    observations: result.observations ?? [],
+    verdict: result.verdict ?? '',
+    strengths: result.strengths ?? [],
+    weaknesses: result.weaknesses ?? [],
+    suggestions: result.suggestions ?? [],
+  };
 };

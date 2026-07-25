@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { fetchDeckListByID, updateDeck, deleteDeck } from '../services/deckService';
+import { analyzeDeck } from '../services/aiService';
 import { selectCurrentUser } from '../store/AuthSlice';
+import { DeckAnalysis } from '../types/analysis';
 import Spinner from '../Components/UI_Components/Spinner';
 import ErrorState from '../Components/UI_Components/ErrorState';
+import DeckAnalysisPanel from '../Components/Deck/DeckAnalysisPanel';
 
 const ORDERED_TYPES = [
   'Commander', 'Creature', 'Instant', 'Sorcery',
@@ -46,6 +49,11 @@ const DeckDetailPage = () => {
 
   const [hoveredCard, setHoveredCard] = useState<{ name: string; imageUri: string } | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+  const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null);
+  const [analysing, setAnalysing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState('');
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const loadDeck = useCallback(async () => {
     if (!id) return;
@@ -122,6 +130,22 @@ const DeckDetailPage = () => {
     }
   };
 
+  const handleAnalyze = async () => {
+    if (!id || analysing) return;
+    setAnalysing(true);
+    setAnalysisError(null);
+    setAnalysisStatus('Starting analysis…');
+    try {
+      const result = await analyzeDeck(id, (event) => setAnalysisStatus(event.message));
+      setAnalysis(result);
+    } catch (err) {
+      setAnalysisError(err instanceof Error ? err.message : 'Analysis failed.');
+    } finally {
+      setAnalysing(false);
+      setAnalysisStatus('');
+    }
+  };
+
   const handleDelete = async () => {
     if (!window.confirm('Delete this deck? This cannot be undone.')) return;
     try {
@@ -186,24 +210,45 @@ const DeckDetailPage = () => {
             {deck.format} · {totalCards} cards
           </p>
         </div>
-        {isOwner && (
-          <div className="flex gap-3 items-start flex-shrink-0">
-            <button
-              onClick={handleSave}
-              disabled={!isDirty || saving}
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-amber-600 transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        )}
+        <div className="flex gap-3 items-start flex-shrink-0">
+          <button
+            onClick={handleAnalyze}
+            disabled={analysing}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          >
+            {analysing ? 'Analysing…' : 'Analyze'}
+          </button>
+          {isOwner && (
+            <>
+              <button
+                onClick={handleSave}
+                disabled={!isDirty || saving}
+                className="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-amber-600 transition-colors"
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
+
+      {analysing && analysisStatus && (
+        <p className="text-sm text-blue-600 dark:text-blue-400 mb-4 max-w-screen-xl mx-auto">
+          {analysisStatus}
+        </p>
+      )}
+      {analysisError && (
+        <p className="text-red-500 text-sm mb-4 max-w-screen-xl mx-auto">{analysisError}</p>
+      )}
+      {analysis && (
+        <DeckAnalysisPanel analysis={analysis} onClose={() => setAnalysis(null)} />
+      )}
 
       {saveError && (
         <p className="text-red-500 text-sm mb-4 max-w-screen-xl mx-auto">{saveError}</p>

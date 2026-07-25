@@ -21,6 +21,7 @@ export function buildApiEndpoints(base: string) {
     // ========== 🧠 AI ==========
     AI_GENERATE: `${base}/ai/deck/generate`,
     AI_REFINE: `${base}/ai/deck/refine`,
+    AI_ANALYZE: `${base}/ai/deck/analyze`,
     AI_SAVE: `${base}/ai/deck/save`,
 
     // ========== 🃏 Decks ==========
