@@ -5,6 +5,8 @@ import reducer, {
   setDeck,
   updateSessionTitle,
   setPendingDiff,
+  setSavedDeckId,
+  clearGenerationId,
   acceptPendingDiff,
   selectSessions,
   selectActiveSessionId,
@@ -187,6 +189,43 @@ describe('decksmithSlice', () => {
       const { state, id } = seeded();
       const withDiff = reducer(state, setPendingDiff({ sessionId: id, diff }));
       const next = reducer(withDiff, setDeck({ sessionId: id, deck }));
+      expect(next.sessions[0].pendingDiff).toBeNull();
+    });
+  });
+
+  describe('saved-deck handoff', () => {
+    const deck: ParsedDeck = {
+      generationId: 'gen-1',
+      commander: 'Krenko, Mob Boss',
+      cards: [{ _id: 'c1', name: 'Goblin King', quantity: 1, role: 'anthem', image_uris: {} }],
+    };
+
+    const seeded = () => {
+      const created = reducer(EMPTY, createSession());
+      const id = created.sessions[0].id;
+      return { state: reducer(created, setDeck({ sessionId: id, deck })), id };
+    };
+
+    it('records the saved deck id', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, setSavedDeckId({ sessionId: id, deckId: 'deck-9' }));
+      expect(next.sessions[0].deck!.savedDeckId).toBe('deck-9');
+    });
+
+    it('drops a dead generation id so the next message can generate afresh', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, clearGenerationId({ sessionId: id }));
+      expect(next.sessions[0].deck!.generationId).toBeUndefined();
+      expect(next.sessions[0].deck!.cards).toHaveLength(1);
+    });
+
+    it('clears a stale pending diff when the generation is dropped', () => {
+      const { state, id } = seeded();
+      const withDiff = reducer(state, setPendingDiff({
+        sessionId: id,
+        diff: { summary: '', adds: [], cuts: [] },
+      }));
+      const next = reducer(withDiff, clearGenerationId({ sessionId: id }));
       expect(next.sessions[0].pendingDiff).toBeNull();
     });
   });

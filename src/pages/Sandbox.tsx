@@ -81,12 +81,17 @@ const Sandbox: React.FC = () => {
       setSelectedCommanderImage(null);
       setErrorCards([]);
     } catch (err: any) {
-      console.log('Deck submit error:', err);
+      console.error('Deck submit error:', err);
       if (err?.details?.notFound?.length > 0) {
         setErrorCards(err.details.notFound);
         alert('Some cards could not be found.');
+      } else if (err?.status === 401 || /unauthor|no token/i.test(err?.message ?? '')) {
+        alert('Please log in to save a deck.');
+      } else if (err?.details?.details?.length) {
+        // Commander legality failures come back with per-rule detail.
+        alert(`This deck isn't legal:\n${err.details.details.join('\n')}`);
       } else {
-        alert('Failed to submit deck.');
+        alert(err?.message ?? 'Failed to submit deck.');
       }
     }
   };

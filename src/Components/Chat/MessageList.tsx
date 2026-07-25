@@ -46,8 +46,10 @@ const MessageList = ({ messages, loading, progress, footer }: Props) => {
 
   return (
     <div className="flex-1 overflow-y-auto flex flex-col gap-2 p-4 bg-white dark:bg-gray-900">
-      {messages.map(msg => (
-        <MessageBubble key={msg.timestamp} message={msg} />
+      {/* Index in the key: two messages can share a millisecond timestamp
+          (a request that fails immediately), and a duplicate key drops one. */}
+      {messages.map((msg, i) => (
+        <MessageBubble key={`${msg.timestamp}-${i}`} message={msg} />
       ))}
       {loading && progress && (
         <div className="self-start max-w-sm bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-sm px-3 py-2 border border-gray-200 dark:border-gray-700">

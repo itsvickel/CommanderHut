@@ -1,39 +1,64 @@
-Commander Hut
+# Commander Hut
 
-🚀 Commander Hut is an AI-powered deck-building tool for Magic: The Gathering. It allows users to generate card lists, search for cards using AI-powered queries, and apply advanced filters to refine their decks. The platform helps players explore and optimize their decks effortlessly.
+AI-assisted deck building for Magic: The Gathering Commander. Describe the deck
+you want and Decksmith builds a legal, synergy-driven 100-card list — then refine
+it in conversation or have it analysed card by card.
 
-✨ Features
+## Features
 
-🧠 AI-Generated Decks – Get deck recommendations based on your preferences.
+- **Decksmith** — a chat workspace that generates decks from a prompt, with live
+  progress through the validation pipeline and a deck panel that fills in as the
+  result streams
+- **Conversational refinement** — follow-up messages ("more removal", "swap
+  Rhystic Study") return a reviewable diff you can apply or discard
+- **Deck analysis** — statistics, mana curve, role coverage, and an AI critique
+  with upgrade suggestions, on any deck
+- **Deck management** — Moxfield-style deck detail view with inline editing,
+  visual card grid, and import from JSON/CSV/XLSX
+- **Card browsing** — search and filter the card database
+- **Light and dark themes**
 
-🔎 Advanced Filtering – Search and filter cards with precision.
+## Tech stack
 
-💻 Modern UI – Responsive and user-friendly interface.
+- **React 19 + TypeScript**, built with Vite
+- **Redux Toolkit** for auth and Decksmith session state
+- **Tailwind CSS** for styling
+- **Jest + Testing Library** for tests
 
-☁️ Cloud-Powered – MySQL & AWS integration for smooth performance.
+The backend lives in a separate repository (`CommanderHut-backend`): Node.js,
+Express, MongoDB, and Groq/Gemini for generation.
 
-🛠 Tech Stack
+## Getting started
 
-Frontend: React, TypeScript, Styled Components
+```bash
+npm install
+cp .env.example .env   # point VITE_API_BASE_URL at your backend
+npm run dev
+```
 
-Backend: API-based architecture
+Every API endpoint is derived from `VITE_API_BASE_URL` in
+[src/Constants/buildApiEndpoints.ts](src/Constants/buildApiEndpoints.ts), so
+that single variable is all you need to configure.
 
-Database: MySQL
+## Scripts
 
-Hosting & Infrastructure: AWS
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Type-check and build for production |
+| `npm test` | Run the test suite |
+| `npm run test:watch` | Watch mode |
+| `npm run lint` | Lint the project |
 
-🌐 Installation & Usage
+## Project layout
 
-Commander Hut is a web-based application – no installation required! Simply visit the website and start building your deck.
-
-🤝 Contributing
-
-Contributions are currently under consideration. If you're interested, check back later or reach out for more details.
-
-📜 License
-
-License to be determined.
-
-📩 Contact
-
-Stay tuned for contact details! 🚀
+```
+src/
+  Components/   UI components (Layout, Chat, Decksmith, Deck, UI_Components)
+  pages/        Route-level pages
+  services/     API clients (aiService, deckService, cardService, …)
+  store/        Redux slices (auth, decksmith)
+  types/        Shared TypeScript types
+  utils/        Helpers
+docs/superpowers/   Design specs and implementation plans per phase
+```

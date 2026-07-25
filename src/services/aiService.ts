@@ -25,14 +25,18 @@ export const saveAIDeck = async (
     body: JSON.stringify({ generation_id: generationId, deck_name: deckName }),
   });
 
-  const result = await response.json();
   if (!response.ok) {
-    const message = response.status === 410
-      ? 'This generation has expired — please regenerate the deck'
-      : result.error ?? 'Failed to save deck';
+    if (response.status === 410) {
+      throw new GenerationExpiredError('This generation has expired — please regenerate the deck');
+    }
+    let message = 'Failed to save deck';
+    try {
+      const payload = await response.json();
+      if (payload?.error) message = payload.error;
+    } catch { /* non-JSON body (e.g. a proxy error page) */ }
     throw new Error(message);
   }
-  return result as SavedDeckResponse;
+  return (await response.json()) as SavedDeckResponse;
 };
 
 interface GenerateResult {
@@ -73,26 +77,76 @@ interface RefineResult extends DeckDiff {
   deck_id?: string | null;
 }
 
+/** A refinement targets either a live generation or a saved deck. */
+export type RefineTarget =
+  | { generationId: string }
+  | { deckId: string };
+
+function refineBody(target: RefineTarget, instruction: string) {
+  return 'generationId' in target
+    ? { generation_id: target.generationId, instruction }
+    : { deck_id: target.deckId, instruction };
+}
+
+/** Thrown when the backend preview for a generation is gone (HTTP 410). */
+export class GenerationExpiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GenerationExpiredError';
+  }
+}
+
 /**
- * Asks the AI to refine an existing generation ("more removal", "swap X").
+ * Asks the AI to refine an existing deck ("more removal", "swap X").
  * Returns a validated add/cut diff — the backend guarantees every add is a
- * real, on-identity, bracket-legal card and never cuts the commander.
+ * real, on-identity, bracket-legal card and never cuts the commander. The
+ * diff is staged server-side and only applied by `acceptRefinement`.
  */
 export const refineDeck = async (
-  generationId: string,
+  target: RefineTarget,
   instruction: string,
   onProgress?: (event: ProgressEvent) => void
 ): Promise<DeckDiff> => {
-  const result = await postSseStream<RefineResult>(
-    API_ENDPOINT.AI_REFINE,
-    { generation_id: generationId, instruction },
-    onProgress
-  );
+  let result: RefineResult;
+  try {
+    result = await postSseStream<RefineResult>(
+      API_ENDPOINT.AI_REFINE,
+      refineBody(target, instruction),
+      onProgress
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (/expired/i.test(message)) throw new GenerationExpiredError(message);
+    throw err;
+  }
 
   if (!Array.isArray(result.adds) || !Array.isArray(result.cuts)) {
     throw new Error('Unexpected response shape');
   }
   return { adds: result.adds, cuts: result.cuts, summary: result.summary ?? '' };
+};
+
+/**
+ * Applies the diff staged by the last refine. Until this is called the
+ * server-side deck is unchanged, so discarding a diff really discards it.
+ */
+export const acceptRefinement = async (generationId: string): Promise<void> => {
+  const response = await fetch(API_ENDPOINT.AI_REFINE_ACCEPT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ generation_id: generationId }),
+  });
+
+  if (!response.ok) {
+    let message = 'Failed to apply changes';
+    try {
+      const payload = await response.json();
+      if (payload?.error) message = payload.error;
+    } catch { /* keep the default message */ }
+    if (response.status === 410) throw new GenerationExpiredError(message);
+    throw new Error(message);
+  }
 };
 
 /**

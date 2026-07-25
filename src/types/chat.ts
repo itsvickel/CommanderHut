@@ -14,6 +14,8 @@ export interface CardEntry {
 
 export interface ParsedDeck {
   generationId?: string;
+  /** Set once the deck is saved; refinement then targets the saved deck. */
+  savedDeckId?: string;
   commander: string;
   commanderImageUri?: string;
   commanderReason?: string;

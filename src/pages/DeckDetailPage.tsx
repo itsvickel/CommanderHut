@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { fetchDeckListByID, updateDeck, deleteDeck } from '../services/deckService';
 import { analyzeDeck } from '../services/aiService';
-import { selectCurrentUser } from '../store/AuthSlice';
+import { selectCurrentUser, selectIsAuthenticated } from '../store/AuthSlice';
 import { DeckAnalysis } from '../types/analysis';
 import Spinner from '../Components/UI_Components/Spinner';
 import ErrorState from '../Components/UI_Components/ErrorState';
@@ -33,6 +33,7 @@ const DeckDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const [deck, setDeck] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -134,6 +135,9 @@ const DeckDetailPage = () => {
     if (!id || analysing) return;
     setAnalysing(true);
     setAnalysisError(null);
+    // Clear the previous result so a failed re-run can't leave a stale panel
+    // on screen looking like the current analysis.
+    setAnalysis(null);
     setAnalysisStatus('Starting analysis…');
     try {
       const result = await analyzeDeck(id, (event) => setAnalysisStatus(event.message));
@@ -211,13 +215,16 @@ const DeckDetailPage = () => {
           </p>
         </div>
         <div className="flex gap-3 items-start flex-shrink-0">
-          <button
-            onClick={handleAnalyze}
-            disabled={analysing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors"
-          >
-            {analysing ? 'Analysing…' : 'Analyze'}
-          </button>
+          {/* Analysis needs an account — hide it rather than surfacing a 401. */}
+          {isAuthenticated && (
+            <button
+              onClick={handleAnalyze}
+              disabled={analysing}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors"
+            >
+              {analysing ? 'Analysing…' : 'Analyze'}
+            </button>
+          )}
           {isOwner && (
             <>
               <button

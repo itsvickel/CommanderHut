@@ -84,8 +84,24 @@ const decksmithSlice = createSlice({
       const session = state.sessions.find(s => s.id === action.payload.sessionId);
       if (session) session.pendingDiff = action.payload.diff;
     },
-    // Applies the pending diff to the session deck. The backend has already
-    // applied the same diff to its cached preview, so saving stays in sync.
+    /** Records the deck id after a save, so refinement can target it. */
+    setSavedDeckId(state, action: PayloadAction<{ sessionId: string; deckId: string }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (session?.deck) session.deck.savedDeckId = action.payload.deckId;
+    },
+    /**
+     * Drops a generation id whose server-side preview is gone (saved or
+     * expired), so the next message starts a fresh generation instead of
+     * failing forever.
+     */
+    clearGenerationId(state, action: PayloadAction<{ sessionId: string }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (session?.deck) {
+        session.deck.generationId = undefined;
+        session.pendingDiff = null;
+      }
+    },
+    // Mirrors the diff the backend applied when the user accepted it.
     acceptPendingDiff(state, action: PayloadAction<{ sessionId: string }>) {
       const session = state.sessions.find(s => s.id === action.payload.sessionId);
       if (!session?.deck || !session.pendingDiff) return;
@@ -113,6 +129,8 @@ export const {
   setDeck,
   updateSessionTitle,
   setPendingDiff,
+  setSavedDeckId,
+  clearGenerationId,
   acceptPendingDiff,
 } = decksmithSlice.actions;
 

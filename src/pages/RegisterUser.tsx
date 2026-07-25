@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { postRegisterUser } from '../services/userService';
+import { postRegisterUser, loginUser } from '../services/userService';
 import { Button, Input } from '../Components/UI_Components';
 import { authCheckSucceeded } from '../store/AuthSlice';
 import { safeRedirect } from '../utils/safeRedirect';
@@ -29,15 +29,21 @@ const RegisterUser = () => {
         password,
       });
 
-      if (!registered?.user?._id) {
+      if (!registered?.user?.id) {
         setError('Registration failed — please try again');
         return;
       }
 
+      // Signup doesn't set the auth cookie, so log in before treating the
+      // session as authenticated — otherwise every later request 401s.
+      const loggedIn = await loginUser({ email_address: emailAddress, password });
+      const user = loggedIn?.data?.user ?? registered.user;
+
       dispatch(authCheckSucceeded({
-        id: registered.user._id,
-        username: registered.user.username,
-        email_address: registered.user.email_address,
+        id: user.id ?? registered.user.id,
+        username: user.username,
+        email_address: user.email_address,
+        is_admin: user.is_admin,
       }));
 
       navigate(safeRedirect(location.search), { replace: true });

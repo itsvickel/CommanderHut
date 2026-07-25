@@ -36,9 +36,10 @@ export const postDeckList = async (payload: DeckCreatePayload) => {
     const result = await response.json();
 
     if (!response.ok) {
-      // Attach backend error details for UI to consume
+      // Attach backend error details (and status) for the UI to consume
       const error = new Error(result.error || 'Failed to post deck');
       (error as any).details = result;
+      (error as any).status = response.status;
       throw error;
     }
 

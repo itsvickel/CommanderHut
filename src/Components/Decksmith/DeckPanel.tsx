@@ -8,7 +8,7 @@ import DeckPanelEmpty from './DeckPanelEmpty';
 
 interface Props {
   deck: ParsedDeck | null;
-  onSave?: (deckName: string) => void;
+  onSave?: (deckName: string, deckId: string | null) => void;
 }
 interface HoveredCard { name: string; imageUri: string; top: number; right: number; }
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
@@ -46,9 +46,10 @@ const DeckPanel = ({ deck, onSave }: Props) => {
     try {
       const deckName = `${deck.commander} deck`;
       const result = await saveAIDeck(deck.generationId, deckName);
-      setSavedDeckId(result.deck?._id ?? null);
+      const newDeckId = result.deck?._id ?? null;
+      setSavedDeckId(newDeckId);
       setSaveStatus('success');
-      onSave?.(deckName);
+      onSave?.(deckName, newDeckId);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {

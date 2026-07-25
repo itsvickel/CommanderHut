@@ -9,7 +9,8 @@ interface UserPayload {
 }
 
 export interface RegisteredUserData {
-  _id: string;
+  /** The backend returns `id`, not `_id`. */
+  id: string;
   username: string;
   email_address: string;
 }
