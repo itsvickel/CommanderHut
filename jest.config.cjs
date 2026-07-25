@@ -5,6 +5,8 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    // api.ts uses Vite's import.meta, which Jest cannot parse.
+    "Constants/api$": "<rootDir>/src/Constants/api.jest.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transform: {

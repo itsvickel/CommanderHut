@@ -1,41 +1,53 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
 import { updateDeck, deleteDeck } from '../deckService';
 
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios, true);
+const mockFetch = jest.fn();
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  mockFetch.mockReset();
+  global.fetch = mockFetch as unknown as typeof fetch;
+});
 
 describe('updateDeck', () => {
-  it('sends PATCH request and returns updated deck', async () => {
+  it('sends PATCH request with credentials and returns updated deck', async () => {
     const mockDeck = { _id: 'abc123', deck_name: 'New Name' };
-    mockedAxios.patch = vi.fn().mockResolvedValue({ data: mockDeck });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => mockDeck,
+    });
 
-    const result = await updateDeck('abc123', { deck_name: 'New Name' });
+    const result = await updateDeck('abc123', { name: 'New Name' });
 
-    expect(mockedAxios.patch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('abc123'),
-      { deck_name: 'New Name' }
+      expect.objectContaining({ method: 'PATCH', credentials: 'include' })
     );
     expect(result).toEqual(mockDeck);
   });
 
-  it('throws on non-2xx response', async () => {
-    mockedAxios.patch = vi.fn().mockRejectedValue({ response: { status: 403 } });
-    await expect(updateDeck('abc123', {})).rejects.toMatchObject({ response: { status: 403 } });
+  it('throws with backend error message on non-2xx response', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'Forbidden' }),
+    });
+    await expect(updateDeck('abc123', {})).rejects.toThrow('Forbidden');
   });
 });
 
 describe('deleteDeck', () => {
-  it('sends DELETE request', async () => {
-    mockedAxios.delete = vi.fn().mockResolvedValue({ status: 204 });
+  it('sends DELETE request with credentials', async () => {
+    mockFetch.mockResolvedValue({ ok: true });
     await deleteDeck('abc123');
-    expect(mockedAxios.delete).toHaveBeenCalledWith(expect.stringContaining('abc123'));
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('abc123'),
+      expect.objectContaining({ method: 'DELETE', credentials: 'include' })
+    );
   });
 
   it('throws on failure', async () => {
-    mockedAxios.delete = vi.fn().mockRejectedValue({ response: { status: 404 } });
-    await expect(deleteDeck('abc123')).rejects.toMatchObject({ response: { status: 404 } });
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'Deck not found' }),
+    });
+    await expect(deleteDeck('abc123')).rejects.toThrow('Deck not found');
   });
 });

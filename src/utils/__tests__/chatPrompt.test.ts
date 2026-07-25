@@ -2,11 +2,9 @@ import { buildPromptFromMessages } from '../chatPrompt';
 import { Message } from '../../types/chat';
 
 describe('buildPromptFromMessages', () => {
-  it('includes system prompt when messages is empty', () => {
+  it('returns an empty string when messages is empty (backend owns the system prompt)', () => {
     const result = buildPromptFromMessages([]);
-    expect(result).toContain('You are a Magic: The Gathering Commander deck-building assistant.');
-    expect(result).not.toContain('User:');
-    expect(result).not.toContain('Assistant:');
+    expect(result).toBe('');
   });
 
   it('prefixes a user message with "User:"', () => {

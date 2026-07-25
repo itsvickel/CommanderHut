@@ -25,7 +25,7 @@ export const postRegisterUser = async (user: UserPayload): Promise<RegisteredUse
     return response.data as RegisteredUserResponse;
 
   } catch (error: any) {
-    console.error("Error fetching cards from AI:", error.response?.data || error);
+    console.error("Error registering user:", error.response?.data || error);
     throw error;
   }
 };
@@ -37,18 +37,18 @@ export const loginUser = async (credentials: { email_address: string; password: 
     });
     return response;
   } catch (error: any) {
-    console.error("Error logging in user:", error.response?.data || error);
-    return null;
+    // Rethrow so the UI can show why the login failed.
+    const message = error.response?.data?.error ?? 'Login failed — please try again';
+    throw new Error(message);
   }
 };
 
-export const logoutUser = async (): Promise<any> => {
+export const logoutUser = async (): Promise<void> => {
   try {
-    await axios.post(API_ENDPOINT.LOGOUT, {
+    await axios.post(API_ENDPOINT.LOGOUT, null, {
       withCredentials: true,
     });
   } catch (error: any) {
     console.error("Error logging out user:", error.response?.data || error);
-    return null;
   }
 };

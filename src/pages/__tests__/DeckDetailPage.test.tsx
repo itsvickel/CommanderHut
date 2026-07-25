@@ -78,12 +78,12 @@ describe('DeckDetailPage', () => {
   it('renders cards in correct type columns', async () => {
     renderPage();
     await screen.findByText('My Test Deck');
-    expect(screen.getByText(/Commander \(1\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Artifact \(1\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Instant \(1\)/)).toBeInTheDocument();
-    expect(screen.getByText("Atraxa, Praetors' Voice")).toBeInTheDocument();
-    expect(screen.getByText('Sol Ring')).toBeInTheDocument();
-    expect(screen.getByText('Swords to Plowshares')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Commander 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Artifact 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Instant 1' })).toBeInTheDocument();
+    expect(screen.getByAltText("Atraxa, Praetors' Voice")).toBeInTheDocument();
+    expect(screen.getByAltText('Sol Ring')).toBeInTheDocument();
+    expect(screen.getByAltText('Swords to Plowshares')).toBeInTheDocument();
   });
 
   it('hides edit controls for non-owners', async () => {
@@ -104,9 +104,9 @@ describe('DeckDetailPage', () => {
 
   it('removes card from its column when × is clicked, enables Save', async () => {
     renderPage();
-    await screen.findByText('Sol Ring');
+    await screen.findByAltText('Sol Ring');
     fireEvent.click(screen.getByLabelText('Remove Sol Ring'));
-    expect(screen.queryByText('Sol Ring')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('Sol Ring')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /save/i })).not.toBeDisabled();
   });
 

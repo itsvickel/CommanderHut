@@ -6,6 +6,36 @@ export type ProgressEvent = {
   message: string;
 };
 
+export interface SavedDeckResponse {
+  deck: { _id: string; deck_name: string };
+}
+
+/**
+ * Persists a generated preview as a real deck via POST /api/ai/deck/save.
+ * The backend keeps generation previews for ~1 hour; a 410 means the
+ * preview expired and the deck must be regenerated.
+ */
+export const saveAIDeck = async (
+  generationId: string,
+  deckName: string
+): Promise<SavedDeckResponse> => {
+  const response = await fetch(API_ENDPOINT.AI_SAVE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ generation_id: generationId, deck_name: deckName }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    const message = response.status === 410
+      ? 'This generation has expired — please regenerate the deck'
+      : result.error ?? 'Failed to save deck';
+    throw new Error(message);
+  }
+  return result as SavedDeckResponse;
+};
+
 export const fetchMTGIdea = async (
   prompt: string,
   onProgress?: (event: ProgressEvent) => void

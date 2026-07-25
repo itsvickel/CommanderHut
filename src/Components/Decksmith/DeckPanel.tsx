@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { ParsedDeck } from '../../types/chat';
-import { postDeckList } from '../../services/deckService';
+import { saveAIDeck } from '../../services/aiService';
 import { selectIsAuthenticated } from '../../store/AuthSlice';
 import DeckPanelEmpty from './DeckPanelEmpty';
 
@@ -15,6 +15,7 @@ type SaveStatus = 'idle' | 'saving' | 'success' | 'error';
 
 const DeckPanel = ({ deck, onSave }: Props) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [savedDeckId, setSavedDeckId] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<HoveredCard | null>(null);
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -35,21 +36,24 @@ const DeckPanel = ({ deck, onSave }: Props) => {
 
   const handleSave = async () => {
     if (!isAuthenticated || saveStatus === 'saving') return;
+    if (!deck.generationId) {
+      setSaveError('This deck has no active generation — please regenerate it');
+      setSaveStatus('error');
+      return;
+    }
     setSaveStatus('saving');
+    setSaveError(null);
     try {
-      const result = await postDeckList({
-        commander: deck.commander,
-        cards: deck.cards.map(c => ({ id: c._id, quantity: c.quantity })),
-        name: `${deck.commander} deck`,
-        format: 'Commander',
-      });
-      setSavedDeckId(result?._id ?? null);
+      const deckName = `${deck.commander} deck`;
+      const result = await saveAIDeck(deck.generationId, deckName);
+      setSavedDeckId(result.deck?._id ?? null);
       setSaveStatus('success');
-      onSave?.(`${deck.commander} deck`);
+      onSave?.(deckName);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
       console.error('Failed to save deck:', err);
+      setSaveError(err instanceof Error ? err.message : 'Save failed — try again');
       setSaveStatus('error');
     }
   };
@@ -114,7 +118,11 @@ const DeckPanel = ({ deck, onSave }: Props) => {
             {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'success' ? 'Saved!' : 'Save Deck'}
           </button>
         )}
-        {saveStatus === 'error' && <p className="text-xs text-red-600 dark:text-red-400 text-center m-0">Save failed — try again</p>}
+        {saveStatus === 'error' && (
+          <p className="text-xs text-red-600 dark:text-red-400 text-center m-0">
+            {saveError ?? 'Save failed — try again'}
+          </p>
+        )}
         {savedDeckId && (
           <Link
             to={`/decks/${savedDeckId}`}
