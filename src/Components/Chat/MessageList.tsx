@@ -13,20 +13,31 @@ const GENERATION_STAGES = [
   { id: 'finalising',           label: 'Finalising deck' },
 ];
 
+const REFINE_STAGES = [
+  { id: 'analysing',  label: 'Reading your deck' },
+  { id: 'candidates', label: 'Finding candidate upgrades' },
+  { id: 'refining',   label: 'Choosing changes' },
+  { id: 'validating', label: 'Validating changes' },
+];
+
 export interface ProgressState {
   activeStage: string | null;
   activeMessage: string;
   completedStages: string[];
   error: { stage: string; message: string } | null;
+  /** Which pipeline the stages belong to. */
+  mode?: 'generate' | 'refine';
 }
 
 interface Props {
   messages: Message[];
   loading: boolean;
   progress?: ProgressState;
+  /** Rendered after the messages — used for the pending-refinement card. */
+  footer?: React.ReactNode;
 }
 
-const MessageList = ({ messages, loading, progress }: Props) => {
+const MessageList = ({ messages, loading, progress, footer }: Props) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +52,7 @@ const MessageList = ({ messages, loading, progress }: Props) => {
       {loading && progress && (
         <div className="self-start max-w-sm bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-sm px-3 py-2 border border-gray-200 dark:border-gray-700">
           <GenerationProgress
-            stages={GENERATION_STAGES}
+            stages={progress.mode === 'refine' ? REFINE_STAGES : GENERATION_STAGES}
             activeStage={progress.activeStage}
             activeMessage={progress.activeMessage}
             completedStages={progress.completedStages}
@@ -54,6 +65,7 @@ const MessageList = ({ messages, loading, progress }: Props) => {
           Thinking…
         </div>
       )}
+      {footer}
       <div ref={bottomRef} />
     </div>
   );
