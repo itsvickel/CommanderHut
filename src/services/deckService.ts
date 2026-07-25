@@ -53,18 +53,20 @@ export const postDeckList = async (payload: DeckCreatePayload) => {
  * Submit a deck list to the backend. 
  * @returns {Promise<any>} - The response from the backend (e.g., confirmation message).
  */
-export const fetchAllDecks = async (): Promise<any> => {
+export interface PublicDecksPage {
+  decks: any[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+/** Fetches the paginated list of public decks (no auth required). */
+export const fetchPublicDecks = async (limit = 12): Promise<PublicDecksPage> => {
   try {
-    const response = await axios.get(API_ENDPOINT.DECK_BASE_URL);
-
-    if (!response || !response.data) {
-      throw new Error("Failed to submit the deck list");
-    }
-
-    console.log("List of decks", response.data);
-    return response.data;
+    const response = await axios.get(API_ENDPOINT.DECK_BASE_URL, { params: { limit } });
+    return response.data as PublicDecksPage;
   } catch (error) {
-    console.error("Error submitting deck list:", error);
+    console.error('Error fetching public decks:', error);
     throw error;
   }
 };

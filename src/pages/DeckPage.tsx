@@ -1,17 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { fetchDeckListByName } from '../services/deckService';
+import { fetchDeckListByName, deleteDeck } from '../services/deckService';
 import { selectCurrentUser } from '../store/AuthSlice';
 import Spinner from '../Components/UI_Components/Spinner';
 import ErrorState from '../Components/UI_Components/ErrorState';
+import DeckOverflowMenu from '../Components/Deck/DeckOverflowMenu';
+import DeleteDeckModal from '../Components/Deck/DeleteDeckModal';
+
+interface DeckSummary {
+  _id: string;
+  deck_name: string;
+  format: string;
+  commander_image?: string;
+  updated_at?: string;
+}
 
 const DeckPage = () => {
-  const [decks, setDecks] = useState<any[]>([]);
+  const [decks, setDecks] = useState<DeckSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
+
+  const [deckToDelete, setDeckToDelete] = useState<DeckSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -29,6 +43,21 @@ const DeckPage = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  const confirmDelete = async () => {
+    if (!deckToDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteDeck(deckToDelete._id);
+      setDecks(prev => prev.filter(d => d._id !== deckToDelete._id));
+      setDeckToDelete(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Delete failed. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) return <Spinner label="Loading decks" />;
   if (error) return <ErrorState message={error} retry={load} />;
 
@@ -41,6 +70,10 @@ const DeckPage = () => {
       {decks.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-gray-400 text-lg">
           No decks yet —{' '}
+          <Link to="/decksmith" className="text-blue-600 dark:text-blue-400 underline">
+            build one with Decksmith
+          </Link>
+          {' '}or{' '}
           <Link to="/sandbox" className="text-blue-600 dark:text-blue-400 underline">
             create one in Sandbox
           </Link>
@@ -54,8 +87,14 @@ const DeckPage = () => {
             <div
               key={item._id}
               onClick={() => navigate(`/decks/${item._id}`)}
-              className="flex flex-col cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+              className="relative flex flex-col cursor-pointer bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
             >
+              <div className="absolute top-3 right-3 z-10">
+                <DeckOverflowMenu
+                  onEdit={() => navigate(`/decks/${item._id}/edit`)}
+                  onDelete={() => { setDeleteError(null); setDeckToDelete(item); }}
+                />
+              </div>
               <img
                 src={item.commander_image || '/images/placeholder_commander.png'}
                 alt={`${item.deck_name} Commander`}
@@ -68,14 +107,25 @@ const DeckPage = () => {
                 <span className="inline-block text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-2 py-0.5 rounded mb-2 self-start">
                   {item.format}
                 </span>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-auto">
-                  Updated {new Date(item.updated_at).toLocaleDateString()}
-                </p>
+                {item.updated_at && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-auto">
+                    Updated {new Date(item.updated_at).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <DeleteDeckModal
+        isOpen={!!deckToDelete}
+        deckName={deckToDelete?.deck_name ?? ''}
+        isDeleting={deleting}
+        deleteError={deleteError}
+        onConfirm={confirmDelete}
+        onCancel={() => { if (!deleting) setDeckToDelete(null); }}
+      />
     </div>
   );
 };

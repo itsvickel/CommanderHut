@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { postRegisterUser } from '../services/userService';
-import { postProfile } from '../services/profileService';
 import { Button, Input } from '../Components/UI_Components';
 import { authCheckSucceeded } from '../store/AuthSlice';
 import { safeRedirect } from '../utils/safeRedirect';
@@ -16,8 +15,13 @@ const RegisterUser = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [emailAddress, setEmailAddress] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const registerNewUser = async () => {
+    if (submitting) return;
+    setError(null);
+    setSubmitting(true);
     try {
       const registered = await postRegisterUser({
         username,
@@ -26,11 +30,9 @@ const RegisterUser = () => {
       });
 
       if (!registered?.user?._id) {
-        console.error('Registration response missing user id');
+        setError('Registration failed — please try again');
         return;
       }
-
-      await postProfile({ user_id: registered.user._id });
 
       dispatch(authCheckSucceeded({
         id: registered.user._id,
@@ -39,8 +41,10 @@ const RegisterUser = () => {
       }));
 
       navigate(safeRedirect(location.search), { replace: true });
-    } catch (err) {
-      console.error('Registration failed:', err);
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? 'Registration failed — please try again');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -75,7 +79,13 @@ const RegisterUser = () => {
           />
         </div>
 
-        <Button onClick={registerNewUser} name="Register" />
+        {error && (
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400 text-center mb-3">
+            {error}
+          </p>
+        )}
+
+        <Button onClick={registerNewUser} name={submitting ? 'Registering…' : 'Register'} />
 
         <p className="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">
           Already have an account?{' '}
