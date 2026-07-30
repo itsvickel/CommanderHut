@@ -12,16 +12,24 @@ const Authentication = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const onLogin = () => {
+    if (submitting) return;
+    setError(null);
+    setSubmitting(true);
     loginUser({ email_address: email, password })
       .then((res) => {
         if (res && res.data?.user) {
           dispatch(authCheckSucceeded(res.data.user));
           navigate(safeRedirect(location.search), { replace: true });
+        } else {
+          setError('Login failed — please try again');
         }
       })
-      .catch((err) => console.error('Login failed:', err));
+      .catch((err) => setError(err.message ?? 'Login failed — please try again'))
+      .finally(() => setSubmitting(false));
   };
 
   return (
@@ -33,8 +41,13 @@ const Authentication = () => {
       <div className="flex flex-col my-4 mx-2">
         <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
       </div>
+      {error && (
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400 text-center mx-2 my-2">
+          {error}
+        </p>
+      )}
       <div className="flex justify-center mt-4">
-        <Button onClick={onLogin} name="Login" />
+        <Button onClick={onLogin} name={submitting ? 'Logging in…' : 'Login'} />
       </div>
     </div>
   );

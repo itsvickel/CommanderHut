@@ -1,11 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Message, ParsedDeck } from '../types/chat';
+import { Message, ParsedDeck, DeckDiff } from '../types/chat';
 
 export interface DecksmithSession {
   id: string;
   title: string;
   messages: Message[];
   deck: ParsedDeck | null;
+  /** Refinement awaiting the user's accept/discard decision. */
+  pendingDiff: DeckDiff | null;
   createdAt: string;
 }
 
@@ -22,7 +24,16 @@ export function loadFromStorage(): DecksmithState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed?.sessions)) return parsed as DecksmithState;
+    if (Array.isArray(parsed?.sessions)) {
+      return {
+        activeSessionId: parsed.activeSessionId ?? null,
+        // Sessions stored before refinement existed have no pendingDiff.
+        sessions: parsed.sessions.map((s: DecksmithSession) => ({
+          ...s,
+          pendingDiff: s.pendingDiff ?? null,
+        })),
+      };
+    }
   } catch { /* ignore parse errors */ }
   return DEFAULT_STATE;
 }
@@ -44,6 +55,7 @@ const decksmithSlice = createSlice({
         title: 'New session',
         messages: [],
         deck: null,
+        pendingDiff: null,
         createdAt: new Date().toISOString(),
       });
       state.activeSessionId = id;
@@ -59,11 +71,53 @@ const decksmithSlice = createSlice({
     },
     setDeck(state, action: PayloadAction<{ sessionId: string; deck: ParsedDeck }>) {
       const session = state.sessions.find(s => s.id === action.payload.sessionId);
-      if (session) session.deck = action.payload.deck;
+      if (session) {
+        session.deck = action.payload.deck;
+        session.pendingDiff = null;
+      }
     },
     updateSessionTitle(state, action: PayloadAction<{ sessionId: string; title: string }>) {
       const session = state.sessions.find(s => s.id === action.payload.sessionId);
       if (session) session.title = action.payload.title;
+    },
+    setPendingDiff(state, action: PayloadAction<{ sessionId: string; diff: DeckDiff | null }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (session) session.pendingDiff = action.payload.diff;
+    },
+    /** Records the deck id after a save, so refinement can target it. */
+    setSavedDeckId(state, action: PayloadAction<{ sessionId: string; deckId: string }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (session?.deck) session.deck.savedDeckId = action.payload.deckId;
+    },
+    /**
+     * Drops a generation id whose server-side preview is gone (saved or
+     * expired), so the next message starts a fresh generation instead of
+     * failing forever.
+     */
+    clearGenerationId(state, action: PayloadAction<{ sessionId: string }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (session?.deck) {
+        session.deck.generationId = undefined;
+        session.pendingDiff = null;
+      }
+    },
+    // Mirrors the diff the backend applied when the user accepted it.
+    acceptPendingDiff(state, action: PayloadAction<{ sessionId: string }>) {
+      const session = state.sessions.find(s => s.id === action.payload.sessionId);
+      if (!session?.deck || !session.pendingDiff) return;
+
+      const cutIds = new Set(session.pendingDiff.cuts.map(c => c._id));
+      const kept = session.deck.cards.filter(c => !cutIds.has(c._id));
+      const added = session.pendingDiff.adds.map(a => ({
+        _id: a._id,
+        name: a.name,
+        quantity: 1,
+        role: a.role,
+        image_uris: a.image_uris ?? {},
+      }));
+
+      session.deck = { ...session.deck, cards: [...kept, ...added] };
+      session.pendingDiff = null;
     },
   },
 });
@@ -74,6 +128,10 @@ export const {
   appendMessage,
   setDeck,
   updateSessionTitle,
+  setPendingDiff,
+  setSavedDeckId,
+  clearGenerationId,
+  acceptPendingDiff,
 } = decksmithSlice.actions;
 
 export const selectSessions = (state: { decksmith: DecksmithState }) =>

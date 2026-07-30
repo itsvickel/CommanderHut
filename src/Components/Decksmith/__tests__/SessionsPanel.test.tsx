@@ -3,7 +3,7 @@ import SessionsPanel from '../SessionsPanel';
 import { DecksmithSession } from '../../../store/decksmithSlice';
 
 const makeSession = (id: string, title: string, createdAt: string): DecksmithSession => ({
-  id, title, messages: [], deck: null, createdAt,
+  id, title, messages: [], deck: null, pendingDiff: null, createdAt,
 });
 
 describe('SessionsPanel', () => {

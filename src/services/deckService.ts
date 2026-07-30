@@ -11,35 +11,35 @@ export interface DeckUpdatePayload {
   deck_list?: Array<{ card: string; quantity: number }>;
 }
 
-/**
- * Submits a new deck to the backend.
- *
- * @param {string} email_address - The user's email address.
- * @param {string} deck_name - The name of the deck to be created.
- * @param {DeckFormat} format - The deck format (e.g., "Commander", "Standard", etc.).
- * @param {SelectedCard[]} selectedCards - An array of selected cards, each containing a card ID and quantity.
- * @param {string} [commander] - Optional. The commander card name (required for Commander decks).
- * @param {string} [tags] - Optional. Comma-separated tags for categorizing the deck.
- * @param {boolean} [is_public=false] - Optional. Whether the deck should be publicly visible. Defaults to false.
- * @returns {Promise<any>} A promise that resolves to the backend response containing the created deck data or an error.
- */
+export interface DeckCreatePayload {
+  deck_name: string;
+  format: 'Commander' | 'Standard' | 'Modern';
+  commander?: string;
+  commander_image?: string;
+  deck_list: Array<{ card: string; quantity: number }>;
+  tags?: string[];
+  is_public?: boolean;
+}
 
-export const postDeckList = async (payload: any) => {
+/** Creates a new deck via POST /api/decks (requires auth cookie). */
+export const postDeckList = async (payload: DeckCreatePayload) => {
   try {
     const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      // Attach backend error details for UI to consume
+      // Attach backend error details (and status) for the UI to consume
       const error = new Error(result.error || 'Failed to post deck');
       (error as any).details = result;
+      (error as any).status = response.status;
       throw error;
     }
 
@@ -54,25 +54,27 @@ export const postDeckList = async (payload: any) => {
  * Submit a deck list to the backend. 
  * @returns {Promise<any>} - The response from the backend (e.g., confirmation message).
  */
-export const fetchAllDecks = async (): Promise<any> => {
+export interface PublicDecksPage {
+  decks: any[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+/** Fetches the paginated list of public decks (no auth required). */
+export const fetchPublicDecks = async (limit = 12): Promise<PublicDecksPage> => {
   try {
-    const response = await axios.get(API_ENDPOINT.DECK_BASE_URL);
-
-    if (!response || !response.data) {
-      throw new Error("Failed to submit the deck list");
-    }
-
-    console.log("List of decks", response.data);
-    return response.data;
+    const response = await axios.get(API_ENDPOINT.DECK_BASE_URL, { params: { limit } });
+    return response.data as PublicDecksPage;
   } catch (error) {
-    console.error("Error submitting deck list:", error);
+    console.error('Error fetching public decks:', error);
     throw error;
   }
 };
 
 export const fetchDeckListByName = async (userId: string): Promise<any> => {
   try {
-    const response = await axios.get(`${API_ENDPOINT.DECK_BY_USER}/${userId}`);
+    const response = await axios.get(`${API_ENDPOINT.DECK_BY_USER}/${userId}`, { withCredentials: true });
     if (!response || !response.data) throw new Error('Failed to fetch user decklist');
     return response.data;
   } catch (error) {
@@ -100,6 +102,7 @@ export const updateDeck = async (
     const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     });
     const result = await response.json();
@@ -120,6 +123,7 @@ export const deleteDeck = async (id: string): Promise<void> => {
     const response = await fetch(`${API_ENDPOINT.DECK_BASE_URL}/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
     });
     if (!response.ok) {
       const result = await response.json();

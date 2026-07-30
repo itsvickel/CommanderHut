@@ -4,13 +4,17 @@ import reducer, {
   appendMessage,
   setDeck,
   updateSessionTitle,
+  setPendingDiff,
+  setSavedDeckId,
+  clearGenerationId,
+  acceptPendingDiff,
   selectSessions,
   selectActiveSessionId,
   selectActiveSession,
   loadFromStorage,
   DecksmithState,
 } from '../decksmithSlice';
-import { Message, ParsedDeck } from '../../types/chat';
+import { Message, ParsedDeck, DeckDiff } from '../../types/chat';
 
 beforeEach(() => localStorage.clear());
 
@@ -129,6 +133,103 @@ describe('decksmithSlice', () => {
     });
   });
 
+  describe('refinement diffs', () => {
+    const deck: ParsedDeck = {
+      generationId: 'gen-1',
+      commander: 'Krenko, Mob Boss',
+      cards: [
+        { _id: 'keep', name: 'Goblin King', quantity: 1, role: 'anthem', image_uris: {} },
+        { _id: 'cut-me', name: 'Weak Goblin', quantity: 1, role: 'synergy', image_uris: {} },
+      ],
+    };
+    const diff: DeckDiff = {
+      summary: 'Better removal.',
+      adds: [{ _id: 'added', name: 'Chaos Warp', role: 'removal' }],
+      cuts: [{ _id: 'cut-me', name: 'Weak Goblin', reason: 'low impact' }],
+    };
+
+    const seeded = () => {
+      const created = reducer(EMPTY, createSession());
+      const id = created.sessions[0].id;
+      return { state: reducer(created, setDeck({ sessionId: id, deck })), id };
+    };
+
+    it('stores a pending diff without touching the deck', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, setPendingDiff({ sessionId: id, diff }));
+      expect(next.sessions[0].pendingDiff).toEqual(diff);
+      expect(next.sessions[0].deck!.cards).toHaveLength(2);
+    });
+
+    it('applies cuts and adds when the diff is accepted', () => {
+      const { state, id } = seeded();
+      const withDiff = reducer(state, setPendingDiff({ sessionId: id, diff }));
+      const next = reducer(withDiff, acceptPendingDiff({ sessionId: id }));
+
+      const names = next.sessions[0].deck!.cards.map(c => c.name);
+      expect(names).toEqual(['Goblin King', 'Chaos Warp']);
+      expect(next.sessions[0].pendingDiff).toBeNull();
+    });
+
+    it('clears a pending diff when discarded', () => {
+      const { state, id } = seeded();
+      const withDiff = reducer(state, setPendingDiff({ sessionId: id, diff }));
+      const next = reducer(withDiff, setPendingDiff({ sessionId: id, diff: null }));
+      expect(next.sessions[0].pendingDiff).toBeNull();
+      expect(next.sessions[0].deck!.cards).toHaveLength(2);
+    });
+
+    it('ignores accept when there is no pending diff', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, acceptPendingDiff({ sessionId: id }));
+      expect(next.sessions[0].deck!.cards).toHaveLength(2);
+    });
+
+    it('clears any pending diff when a new deck is generated', () => {
+      const { state, id } = seeded();
+      const withDiff = reducer(state, setPendingDiff({ sessionId: id, diff }));
+      const next = reducer(withDiff, setDeck({ sessionId: id, deck }));
+      expect(next.sessions[0].pendingDiff).toBeNull();
+    });
+  });
+
+  describe('saved-deck handoff', () => {
+    const deck: ParsedDeck = {
+      generationId: 'gen-1',
+      commander: 'Krenko, Mob Boss',
+      cards: [{ _id: 'c1', name: 'Goblin King', quantity: 1, role: 'anthem', image_uris: {} }],
+    };
+
+    const seeded = () => {
+      const created = reducer(EMPTY, createSession());
+      const id = created.sessions[0].id;
+      return { state: reducer(created, setDeck({ sessionId: id, deck })), id };
+    };
+
+    it('records the saved deck id', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, setSavedDeckId({ sessionId: id, deckId: 'deck-9' }));
+      expect(next.sessions[0].deck!.savedDeckId).toBe('deck-9');
+    });
+
+    it('drops a dead generation id so the next message can generate afresh', () => {
+      const { state, id } = seeded();
+      const next = reducer(state, clearGenerationId({ sessionId: id }));
+      expect(next.sessions[0].deck!.generationId).toBeUndefined();
+      expect(next.sessions[0].deck!.cards).toHaveLength(1);
+    });
+
+    it('clears a stale pending diff when the generation is dropped', () => {
+      const { state, id } = seeded();
+      const withDiff = reducer(state, setPendingDiff({
+        sessionId: id,
+        diff: { summary: '', adds: [], cuts: [] },
+      }));
+      const next = reducer(withDiff, clearGenerationId({ sessionId: id }));
+      expect(next.sessions[0].pendingDiff).toBeNull();
+    });
+  });
+
   describe('loadFromStorage', () => {
     it('returns default state when localStorage is empty', () => {
       expect(loadFromStorage()).toEqual({ sessions: [], activeSessionId: null });
@@ -136,11 +237,19 @@ describe('decksmithSlice', () => {
 
     it('returns parsed state when localStorage has valid data', () => {
       const saved: DecksmithState = {
-        sessions: [{ id: 'a', title: 'Test', messages: [], deck: null, createdAt: '2026-01-01' }],
+        sessions: [{ id: 'a', title: 'Test', messages: [], deck: null, pendingDiff: null, createdAt: '2026-01-01' }],
         activeSessionId: 'a',
       };
       localStorage.setItem('decksmith', JSON.stringify(saved));
       expect(loadFromStorage()).toEqual(saved);
+    });
+
+    it('backfills pendingDiff on sessions saved before refinement existed', () => {
+      localStorage.setItem('decksmith', JSON.stringify({
+        sessions: [{ id: 'a', title: 'Test', messages: [], deck: null, createdAt: '2026-01-01' }],
+        activeSessionId: 'a',
+      }));
+      expect(loadFromStorage().sessions[0].pendingDiff).toBeNull();
     });
 
     it('returns default state when localStorage has malformed JSON', () => {

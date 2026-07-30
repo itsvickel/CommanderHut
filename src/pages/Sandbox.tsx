@@ -1,21 +1,10 @@
 import React, { useState, ChangeEvent } from 'react';
-import { useSelector } from 'react-redux';
 
 import Button from '../Components/UI_Components/Button';
 import Input from '../Components/UI_Components/Input';
 import DeckImport from '../Components/Deck/DeckImport';
-import { postDeckList } from '../services/deckService';
-import { Deck } from '../Interface/deck';
+import { postDeckList, DeckCreatePayload } from '../services/deckService';
 import { Debounce } from '../utils/helpers';
-
-interface RootState {
-  auth: {
-    user: {
-      id: string;
-      email: string;
-    } | null;
-  };
-}
 
 interface CommanderCard {
   name: string;
@@ -32,8 +21,6 @@ const formatMap: Record<string, string> = {
 };
 
 const Sandbox: React.FC = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
-
   const [deckName, setDeckName] = useState('');
   const [deckCards, setDeckCards] = useState('');
   const [format, setFormat] = useState('commander');
@@ -67,15 +54,12 @@ const Sandbox: React.FC = () => {
         quantity: count,
       }));
 
-      const payload: Deck = {
+      const payload: DeckCreatePayload = {
         deck_name: deckName,
-        format: formatMap[format.toLowerCase()] || 'Commander',
+        format: (formatMap[format.toLowerCase()] ?? 'Commander') as DeckCreatePayload['format'],
         commander: format === 'commander' ? commander : undefined,
         commander_image: format === 'commander' ? selectedCommanderImage || undefined : undefined,
         deck_list,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        owner: user ? user?.id : 'anonymous',
         tags: [],
         is_public: false,
       };
@@ -97,12 +81,17 @@ const Sandbox: React.FC = () => {
       setSelectedCommanderImage(null);
       setErrorCards([]);
     } catch (err: any) {
-      console.log('Deck submit error:', err);
+      console.error('Deck submit error:', err);
       if (err?.details?.notFound?.length > 0) {
         setErrorCards(err.details.notFound);
         alert('Some cards could not be found.');
+      } else if (err?.status === 401 || /unauthor|no token/i.test(err?.message ?? '')) {
+        alert('Please log in to save a deck.');
+      } else if (err?.details?.details?.length) {
+        // Commander legality failures come back with per-rule detail.
+        alert(`This deck isn't legal:\n${err.details.details.join('\n')}`);
       } else {
-        alert('Failed to submit deck.');
+        alert(err?.message ?? 'Failed to submit deck.');
       }
     }
   };

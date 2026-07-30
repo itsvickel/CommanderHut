@@ -1,12 +1,15 @@
 // src/Components/Chat/ChatInput.tsx
 import { useState, KeyboardEvent } from 'react';
 
+const DEFAULT_PLACEHOLDER = 'Ask anything about your Commander deck… (Enter to send)';
+
 interface Props {
   onSend: (text: string) => void;
   disabled: boolean;
+  placeholder?: string;
 }
 
-const ChatInput = ({ onSend, disabled }: Props) => {
+const ChatInput = ({ onSend, disabled, placeholder }: Props) => {
   const [text, setText] = useState('');
 
   const submit = () => {
@@ -28,7 +31,7 @@ const ChatInput = ({ onSend, disabled }: Props) => {
         value={text}
         onChange={e => setText(e.target.value)}
         onKeyDown={handleKey}
-        placeholder="Ask anything about your Commander deck… (Enter to send)"
+        placeholder={placeholder ?? DEFAULT_PLACEHOLDER}
         disabled={disabled}
         rows={2}
         className="flex-1 resize-none border border-[#d1d5db] rounded-lg px-3 py-2 text-[0.9rem] font-[inherit] leading-[1.4] focus:outline-none focus:border-[#2563eb] disabled:bg-[#f9fafb] disabled:cursor-not-allowed"
